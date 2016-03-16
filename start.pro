@@ -21,12 +21,10 @@
 
 
     
-    cpu, TPOOL_MIN_ELTS = 10000
+    start_time  = '15-mar-2012 00:24'
+    end_time    = '31-mar-2012 00:36'
     
-    start_time  = '5-may-2012 12:00'
-    end_time    = '15-may-2012 00:01' 
-    
-    interval    = (60*3)*60l
+    interval    = (60*4)*60l
     wave        = 171
 
     test_mode = 0
