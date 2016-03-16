@@ -1,7 +1,6 @@
 #!/bin/bash
 
-#echo "" > log.txt
-nohup ./start.sh >> log.txt &
+nohup ./start.sh > log-$(date +%Y%m%d-%H%M).txt &
 
 
 
