@@ -1,7 +1,7 @@
 #!/bin/csh
-setenv SSW /usr/local/ssw
+setenv SSW /home/$USER/.local/ssw
 setenv SSW_INSTR "gen vso ontology aia"
-source $SSW/gen/setup/setup.ssw /loud
+source $SSW/gen/setup/setup.ssw 
 
 if ! $?EXEC then
     sswidl
