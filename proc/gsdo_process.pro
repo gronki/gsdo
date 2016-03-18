@@ -201,8 +201,8 @@ function gsdo_process, fn_list,          $
 
 
     ; define the structure
-    maxlen = 80
-    _ = { __gsdo_eruption__,            $
+    maxlen = 360
+    _ = { __gsdo_eruption_ext__,            $
         id:         -1l,                $
         t_start:    0.d,                $
         t_end:      0.d,                $
@@ -236,10 +236,6 @@ function gsdo_process, fn_list,          $
         n_diff_t:   fltarr(maxlen),     $
         f_var:      fltarr(maxlen),     $
         f_var_m:    0.,                 $
-      ;  x_flow:     fltarr(maxlen),     $
-      ;  x_flow_m:   0.,                 $
-      ;  y_flow:     fltarr(maxlen),     $
-      ;  y_flow_m:   0.
 	nothing: 0 }
 
     n = (size(imgapr_master_bl))[3]
@@ -295,7 +291,8 @@ function gsdo_process, fn_list,          $
         if _v then print, '  points:', tmp.n_points
 
         tmp.mask = findgen(maxlen) lt tmp.n_points
-        tmp.mask_seq = m1[0:min([ maxlen, n_elements(m1) ])-1]
+        nn4 = min([ maxlen, n_elements(m1) ])
+        tmp.mask_seq[0:nn4-1] = m1[0:nn4-1]
 
         tmp.times = anytim((index.t_obs)[idx])
         tmp.t_start = anytim((index.t_obs)[idx[0]])
