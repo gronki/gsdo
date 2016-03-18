@@ -5,5 +5,5 @@ Kontakt: gronki@camk.edu.pl
 
 Aby zaktualizować/zainstalować konieczne paczki SSW, należy wykonać polecenie:
 ```
-ssw_upgrade,/aia,/nomail,/spawn,/loud,/passive
+ssw_upgrade,/aia,/ontology,/nomail,/spawn,/loud,/passive
 ```
