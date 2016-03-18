@@ -12,7 +12,6 @@
     endif
         
     mk_dir, getenv('GSDO_DATA')
-    mk_dir, getenv('GSDO_DATA') + '/img'
     mk_dir, getenv('GSDO_DATA') + '/fits'
     mk_dir, getenv('GSDO_DATA') + '/sav'
     mk_dir, getenv('GSDO_DATA') + '/erup'
