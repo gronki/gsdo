@@ -285,7 +285,7 @@ function gsdo_process, fn_list,          $
 
         ; ------- write to structure
         ; create temporary array
-        tmp = {__gsdo_eruption__}
+        tmp = {__gsdo_eruption_ext__}
         tmp.id = k
         tmp.n_points = n_points
         if _v then print, '  points:', tmp.n_points
