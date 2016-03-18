@@ -31,7 +31,7 @@
     
     marg = 3
     
-    error_handling = 0
+    error_handling = 1
 
     set_plot,'Z'
     
