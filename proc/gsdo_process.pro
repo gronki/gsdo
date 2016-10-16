@@ -7,7 +7,7 @@ function gsdo_process, fn_list,          $
         prob_smooth = prob_smooth,          $
         area_threshold = erupt_area_threshold,      $
         erupt_intensity_threshold = erupt_intensity_threshold,			$
-        w_param = w_param,		$
+        w_param = w_param, blur_fwhm = blur_fwhm,		$
         verbose = verbose, n_found = n_found,    n_points_min = n_points_min,   $
         savestruct = savestruct, savegraph = savegraph, windowed = windowed
 
@@ -22,6 +22,7 @@ function gsdo_process, fn_list,          $
     checkvar, erupt_movement_threshold, 25
     checkvar, erupt_intensity_threshold, 30
     checkvar, w_param, 8
+    checkvar, blur_fwhm, 3.0
 
     _v = keyword_set(verbose)
     _w = keyword_set(windowed)
@@ -94,7 +95,7 @@ function gsdo_process, fn_list,          $
 
     if _v then print, 'Transformation parameter: ', a_param
 
-    psf_smooth = gsdo_psf(5*[1,1,0])
+    psf_smooth = gsdo_psf(blur_fwhm*[1,1,0])
     n_clip = 3
     idx = findgen((size(data0))[3]-2*n_clip) + n_clip
 
