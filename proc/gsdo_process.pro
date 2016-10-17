@@ -8,8 +8,9 @@ function gsdo_process, fn_list,          $
         area_threshold = erupt_area_threshold,      $
         erupt_intensity_threshold = erupt_intensity_threshold,			$
         w_param = w_param, blur_fwhm = blur_fwhm,		$
-        verbose = verbose, n_found = n_found,    n_points_min = n_points_min,   $
-        savestruct = savestruct, savegraph = savegraph, windowed = windowed
+        verbose = verbose, n_found = n_found, $
+        n_points_min = n_points_min,   $
+        savestruct = savestruct, savegraph = savegraph
 
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -25,7 +26,6 @@ function gsdo_process, fn_list,          $
     checkvar, blur_fwhm, 3.0
 
     _v = keyword_set(verbose)
-    _w = keyword_set(windowed)
 
 
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -38,7 +38,8 @@ function gsdo_process, fn_list,          $
 
     ;pushd, getenv('GSDO_DATA') + path_sep() + 'fits'
     ;fn = GSDO_FNLIST(T_RAN=[interv_start,interv_end], WAVE=wave)
-    read_sdo, fn_list, index0, data0n, 4, 4, 1016, 1016, /UNCOMP_DELETE, /NOSHELL
+    m = 1
+    read_sdo, fn_list, index0, data0n, m, m, 1024 - 2*m, 1024 - 2*m, /UNCOMP_DELETE, /NOSHELL
    ; popd
 
    	if n_elements(data0n) eq 0 then begin
@@ -122,16 +123,16 @@ function gsdo_process, fn_list,          $
     f_var = sqrt( (n_diff_t)^2 + 0.25*(n_diff2_t)^2 )
 
 
-    if _w then begin
-    	window, 0, xs = 1200, ys = 1000
-    	loadct,0
+    if getenv('GSDO_EXTRAPLOT') ne 0 then begin
     	for i = 0, (size(data_raw))[3]-1 do begin
+            set_graph, 180, 180, /mm
+            loadct,0,/silent
     		!p.multi = [0,2,2]
     		;wait, 0.08
-    		plot_image, asinh(reform(data_raw[*,*,i])*0.2), min=0.2, max=6
-    		plot_image, reform(n_diff_t[*,*,i]), min=-0.1, max=0.1
-    		plot_image, reform(n_diff2_t[*,*,i]), min=-0.1, max=0.1
-    		plot_image, reform(f_var[*,*,i]), min=0, max=0.1
+    		plot_image, asinh(reform(data_raw[*,*,i])), min=asinh(10.0), max=asinh(2.7e3), TITLE='ORIGINAL IMAGE'
+    		plot_image, reform(n_diff_t[*,*,i]), min=-0.1, max=0.1, TITLE='1st DERIVATIVE'
+    		plot_image, reform(n_diff2_t[*,*,i]), min=-0.1, max=0.1, TITLE='2nd DERIVATIVE'
+    		plot_image, reform(f_var[*,*,i]), min=0.15, max=0, TITLE='VARIABILITY IDX'
     		gsdo_shot
     	endfor
     endif
@@ -153,7 +154,7 @@ function gsdo_process, fn_list,          $
     if _v then gsdo_tic
     if _v then box_message, 'Generating activity map...'
 
-    imgapr_master = gsdo_activity_map(index, data, f_var, max_tiles=14, w_param=w_param, windowed = windowed)
+    imgapr_master = gsdo_activity_map(index, data, f_var, max_tiles=14, w_param=w_param)
 
     if _v then print, 'Generating apriori done!'
     if _v then print, ' ----- OK ' + gsdo_toc()
@@ -175,15 +176,15 @@ function gsdo_process, fn_list,          $
 
     if _v then print, ' ----- OK ' + gsdo_toc()
 
-    if _w then begin
-    	window, 0, xs = 1400, ys = 800
-    	loadct,0
+    if getenv('GSDO_EXTRAPLOT') ne 0 then begin
     	for i = 0, (size(data_raw))[3]-1 do begin
+            set_graph, 180, 90, /mm
+            loadct,0,/silent
     		;wait, 0.08
     		!p.multi = [0,2,1]
-    		plot_image, asinh(reform(data_raw[*,*,i])*0.2), min=0.1, max=6
+    		plot_image, asinh(reform(data_raw[*,*,i])), min=asinh(10.0), max=asinh(2.7e3)
     		contour, /overplot, reform(imgapr_master_bl[*,*,i]), levels=[0.5]
-    		plot_image, reform(imgapr_master_bl[*,*,i]), min=0, max=1
+    		plot_image, reform(imgapr_master_bl[*,*,i]), min=1, max=0
     		gsdo_shot
     	endfor
 
@@ -328,8 +329,8 @@ function gsdo_process, fn_list,          $
 
         if  (tmp.intens_x le erupt_intensity_threshold) then continue
 
-        if _w then begin
-		    window, 0, xs=800, ys = 800
+        if getenv('GSDO_EXTRAPLOT') ne 0 then begin
+		    set_graph, 120, 120, /mm
 		    !p.multi = 0
 		    plot_image, total(mask,3)
         endif
@@ -377,8 +378,8 @@ function gsdo_process, fn_list,          $
 
 
 
-    	if _w then begin
-    		window, 1, xs = 1000, ys = 800
+    	if getenv('GSDO_EXTRAPLOT') ne 0 then begin
+    		set_graph, 180, 150, /mm
     		!p.multi = [0,2,2]
     		n = n_elements(idx)
 

@@ -1,95 +1,84 @@
-function gsdo_apriori_map, index, data, f_var, windowed = windowed, n_iter = n_iter, w_param = w_param
+function gsdo_apriori_map, index, data, f_var,  n_iter = n_iter, w_param = w_param
 
-	_w = keyword_set(windowed)
-	checkvar, n_iter, 3
+	checkvar, n_iter, 4
 	checkvar, w_param, 8
+
+	common gsdo_apriori_map_IODIFNHDOSFASOH, rectnr
+
+	checkvar, rectnr, 1
 
     ;;; compress using asinh
     af_var = alog10(f_var)
     l_data = alog10(float(data))
 
+	_w = (getenv('GSDO_EXTRAPLOT') ne 0)
 
 	if _w then begin
-		window, 3, xs = 1000, ys = 800
-		!p.multi = [0,3,2] & loadct, 0       
-    endif 
+		set_graph, 180, 180, /mm
+		!p.multi = [0,2,2] & loadct, 0, /silent
+    endif
     ;;; determine quiet frames
     ix_q = GSDO_QUIET_INDICES(index,f_var,data, w1=w_param, plot=_w)
-    
-    b = round(float(n_elements(data))^(1/4.))
-      
-    ;;; and make histogram of them   
+
+    b = 3*(3+round(0.6*float(n_elements(data))^(1/4.)))
+
+    ;;; and make histogram of them
     h_q = GSDO_HIST2D(/STRUCT,   $
           af_var[*,*,ix_q], $
           l_data[*,*,ix_q],    $
-          MIN_X = -2.2, MAX_X = 0, N_X = b,   $
-          MIN_Y = 1.3, MAX_Y = 4.5, N_Y = b, /nonorm)
-          
+          MIN_X = -2.5, MAX_X = 0.5, N_X = b,   $
+          MIN_Y = 1.0, MAX_Y = 4.5, N_Y = b, /nonorm)
+
     h_all = gsdo_hist2d(/struct, like = h_q,        $
-            af_var, l_data, /nonorm)      
-            
+            af_var, l_data, /nonorm)
+
     ;;; kernel used to smooth probabilities
-    ;krn_hist = gsdo_psf([3,2])        
+    krn_hist = gsdo_psf(4.0*[1,1],sigma=5)
     ;;; smooth probability distribution for less noise
     ;;; during division
-    hq_conv = float(h_q.hist)/n_elements(ix_q);, krn_hist, /EDGE_TRUNC) 
-    hall_conv = float(h_all.hist)/n_elements(data[0,0,*]);, krn_hist, /EDGE_TRUNC)  
-    
+	h_q_conv = h_q
+	h_all_conv = h_all
+    h_q_conv.hist = convol(float(h_q.hist)/n_elements(ix_q), krn_hist, /EDGE_TRUNC)
+    h_all_conv.hist = convol(float(h_all.hist)/n_elements(data[0,0,*]), krn_hist, /EDGE_TRUNC)
+
     ;;; compute apriori probability that pixel is not quiet
     h_apr = h_q
-    ;h_apr.hist = ((h_all.hist - h_q.hist)>0)/(h_all.hist) 
-    
-    ;;; assume eruption fill factor of 1%
+
+    ;;; assume eruption fill factor of 0.1%
     s = 0.001
 
     sh = fltarr(n_iter)
-    
+
     for i = 0,n_iter-1 do begin
 		;;; calculate a-priori probability
-		h_apr.hist = gsdo_fix( ((hall_conv - (1.-s)*hq_conv)>0) / hall_conv, 0) 
+		h_apr.hist = gsdo_fix( ((h_all_conv.hist - (1.-s)*h_q_conv.hist)>0) / h_all_conv.hist,0)
 		sh[i] = s
-		
-		;;; remap it to an image       
+
+		;;; remap it to an image
 		imgapr = GSDO_HIST2D_REMAP(af_var, l_data, h_apr)
-		
+
 		;;; recompute eruption fill factor
 		s = ( total(float(imgapr gt 0.5)) / n_elements(imgapr) ) < 0.5
-		
+
     endfor
-    
+
     if _w then begin
-		gsdo_plot_hist2d, h_all
-		gsdo_plot_hist2d, h_q
-		plot_image, h_apr.hist, min=0, max=1, /nosq
-		plot_image, total(imgapr,3), min=0, max=(size(imgapr))[3], title='s='+string(s)
-		plot, sh, yr=[0.000001,1], /yl, ps=-1
-		gsdo_shot        
-    endif 
-       
-;    ;;; space for apriori images
-;    imgapr = l_data * 0.  
+		gsdo_plot_hist2d, h_all_conv, /paper, TITLE='ALL PIXELS'
+		gsdo_plot_hist2d, h_apr, /paper, TITLE='APRIORI PROBABILITY'
+		; plot_image, h_apr.hist, min=1, max=0, /nosq
+		gsdo_plot_hist2d, h_q_conv, /paper, TITLE='QUIET PIXELS'
+		loadct,0,/silent
+		; plot_image, total(imgapr,3), max=0, min=0.5*(size(imgapr))[3], title='s='+string(s)
+		; plot, sh, yr=[0.000001,1], /yl, ps=-1
+		gsdo_shot
 
-;    ;;; make a gaussian filter to mask out the noise in the middle
-;    ;      gq = 1.- exp( -(h_q.grid_x)^2/sigm_dead^2 )
+		if getenv('GSDO_MAKERECTS') ne 0 then begin
+		dd = getenv('GSDO_DATA') + '/img/rect-' + string(rectnr,f='(I05)')
+			mk_dir, dd
+			GSDO_QPNGS, dd + '/rect'  ,-imgapr, min=-1, max=0
+			rectnr = rectnr + 1
+		endif
+    endif
 
-;    ;;; iterate thru frames
-    ; sz = size(data)   
-    ; fn_gen = strjoin(string(sz,f='(I0)'),'x')
-   ;
-;    for j = 0, sz[3]-1 do begin
-;        ;;; make the IV diagram
-;        h = GSDO_HIST2D(/STRUCT, LIKE=h_q,      $
-;            af_var[*,*,j], $
-;            l_data[*,*,j])
-;        ;;; smooth it    
-;        h_conv =  convol(h.hist, krn_hist, /EDGE_TRUNC) 
-;        ;;; compute apriori probability
-;        h_apr = h_q & h_apr.hist = ((h_conv-hq_conv)>0)/h_conv
-;        ;;; invert it and save to image cube
-;        a = GSDO_HIST2D_REMAP(af_var[*,*,j],    $
-;            l_data[*,*,j],h_apr)
-;        imgapr[*,*,j] = GSDO_FIX(a)
-;    endfor
-    
     return, imgapr
 end
