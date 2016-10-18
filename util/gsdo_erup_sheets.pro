@@ -1,4 +1,4 @@
-pro gsdo_erup_sheets, erup, index, data, diff, contours
+pro gsdo_erup_sheets, erup, index, data, diff, apr, mask
 
 
     er_dir = gsdo_erupdir(erup)
@@ -28,7 +28,7 @@ pro gsdo_erup_sheets, erup, index, data, diff, contours
     n = erup.n_points
 
     tile_w_sec = round(max([ 270, 3.6*sqrt(erup.area_x) ]))
-    tile_h_sec = round(tile_w_sec*1.2)
+    tile_h_sec = round(tile_w_sec*1.05)
 
     ; mini solar disk
     plot, [0], [0], /NoData, xr=[-1,1]*1200, yr=[-1,1]*1200, /isotr, Title = 'LOCATION'
@@ -50,9 +50,9 @@ pro gsdo_erup_sheets, erup, index, data, diff, contours
 	outplot, erup.times[0:n-1], erup.h_bottom[0:n-1], 0, linestyle=2
 	xxx = makex(0,2*(n-1),0.001)
 	outplot, erup.times[0] + xxx*60., erup.h_traject_2[0] + xxx * erup.h_traject_2[1] 	$
-			+ xxx^2 * erup.h_traject_2[2], 0, color = 200
+			+ xxx^2 * erup.h_traject_2[2], 0, color = rgb(200,200,200)
 	outplot, erup.times[0] + xxx*60., erup.h_traject_3[0] + xxx * erup.h_traject_3[1] 	$
-			+ xxx^2 * erup.h_traject_3[2] + xxx^3 * erup.h_traject_3[3], 0, color = 100
+			+ xxx^2 * erup.h_traject_3[2] + xxx^3 * erup.h_traject_3[3], 0, color = rgb(100,100,100)
 
     write_png, er_dir + path_sep() + 'summ.png', tvrd(/true)
 
@@ -65,10 +65,13 @@ pro gsdo_erup_sheets, erup, index, data, diff, contours
             /arcsec, center = [erup.x_center_m, erup.y_center_m], dim = [ tile_w_sec, tile_h_sec ]
     m2 = max(datac)
 
-    gsdo_ixdata_crop, index, contours, _, contc,         $
+    gsdo_ixdata_crop, index, mask, _, maskc,         $
             /arcsec, center = [erup.x_center_m, erup.y_center_m], dim = [ tile_w_sec, tile_h_sec ]
 
     gsdo_ixdata_crop, index, diff, _, diffc,         $
+            /arcsec, center = [erup.x_center_m, erup.y_center_m], dim = [ tile_w_sec, tile_h_sec ]
+
+    gsdo_ixdata_crop, index, apr, _, aprc,         $
             /arcsec, center = [erup.x_center_m, erup.y_center_m], dim = [ tile_w_sec, tile_h_sec ]
 
 
@@ -76,18 +79,22 @@ pro gsdo_erup_sheets, erup, index, data, diff, contours
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
     set_graph, 180, 60, /mm
-    !p.multi = [0,3,1]
 
     idx = where(erup.mask_seq,nn)
 
     for j = 0, nn-1 do begin
     	i = idx[j]
-        set_graph, 180, 100, /mm
+        set_graph, 180, 70, /mm
     	!p.multi = [0,3,1]
-    	loadct, 0, /silent
-    	plot_image, asinh(reform(datac[*,*,i])), min=asinh(10.0), max=asinh(2.7e3), TITLE = anytim(/yoh, index[i].date_obs)
-    	plot_image, reform(contc[*,*,i]), min=1, max=0, TITLE = anytim(/yoh, index[i].date_obs)
-    	plot_image, reform(diffc[*,*,i]), min = -0.1, max = 0.1
+        rgb_mask = mono2rgb(reform(maskc[*,*,i]), min=0, max=1) / 255.0
+        im_sun = mono2rgb(asinh(reform(datac[*,*,i])), min=asinh(20.0), max=asinh(2.7e3))
+        im_cm = rgb_mask * mono2rgb(reform(aprc(*,*,i)),min=0.50,max=1) / 255.0
+        im_cm(0,*,*,*) = 1
+        im_cm(1,*,*,*) = 1 - im_cm(1,*,*,*) * 0.1
+        im_cm(2,*,*,*) = 1 - im_cm(2,*,*,*) * 0.3
+    	plot_rgb, im_sun * im_cm, TITLE = anytim(/yoh, index[i].date_obs)
+    	plot_rgb, mono2rgb(aprc(*,*,i),min=0,max=1) * (1-rgb_mask) + mono2temperature(aprc(*,*,i),min=0,max=1) * rgb_mask , TITLE = anytim(/yoh, index[i].date_obs)
+    	plot_rgb, mono2rgb(reform(diffc[*,*,i]), min = -0.15, max = 0.15)
 
     	write_png, er_dir + path_sep() + 'f' + string(j+1,f='(I03)') + '.png', tvrd(/true)
     endfor

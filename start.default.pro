@@ -8,9 +8,7 @@
     ;;;;       Main code for automated eruption detection     ;;;;
     ;;;;       on SDO/AIA 171/304 A images.                   ;;;;
     ;;;;                                                      ;;;;
-    ;;;;       version: 2015/05/13                            ;;;;
-    ;;;;                                                      ;;;;
-    ;;;;       D.Gronkiewicz 2015                             ;;;;
+    ;;;;       D.Gronkiewicz 2015-2016                        ;;;;
     ;;;;       Master Thesis                                  ;;;;
     ;;;;                                                      ;;;;
     ;;;;                                                      ;;;;
@@ -24,14 +22,13 @@
     ; Make a copy called "start.pro" and put your settings there.
 
 
-    start_time  = '15-mar-2012 00:24'
-    end_time    = '31-mar-2012 00:36'
+    start_time  = '29-apr-2012 14:30'
+    end_time    = '29-apr-2012 17:30'
 
     interval    = (60*4)*60l
     wave        = 171
 
     test_mode = 0
-    setenv, 'GSDO_EXTRAPLOT=0'
 
     marg = 3
 
@@ -109,18 +106,18 @@
         endif
 
         eruptions = gsdo_process(fn,                        $
-                prob_threshold = 0.35,                      $
-                prob_smooth = 7,                            $
-                area_threshold = 600,                       $
+                prob_threshold = 0.45,                      $
+                blur_image = 1.5,                           $
+                blur_apriori = 0,                           $
+                transform_param = 14.,                      $
+                area_threshold = 3.14 * 12*12 ,             $
+                map_max_tiles = 12,                         $
                 n_points_min = 10,							$
-                erupt_movement_threshold = 25,				$
-                erupt_intensity_threshold = 30,				$
+                erupt_movement_threshold = 12,				$
+                erupt_intensity_threshold = 15,				$
                 n_found = n_found,                          $
-                w_param = 8,							$
+                w_param = 8,							    $
                 /SaveStruct, /Verbose, /savegraph)
-
-      ;  if n_found ne 0 then        $
-      ;      gsdo_append, eruptions_all, eruptions
 
 		gsdo_log, 'FINISHED ('+anytim(t0,/yoh,/trunc) + ' - ' + anytim(t1,/yoh,/trunc)+')'
 		gsdo_log, '     found eruptions ' + string(n_found)

@@ -1,81 +1,55 @@
 
-pro zgraph_chkvar, v, def
+pro setgraph_checkvar, v, def
 	if n_elements(v) eq 0 then v = def
 end
 
-pro set_graph, x, y,            $
+pro set_graph, x, y,  win,          $
     clean = clean,              $
-    dpi = dpi_,                 $
+    dpi = dpi,                 $
     mm = mm,                    $
     zet = zet,                  $
-    window_id = win,            $
     scale = sc,                 $
     line_width = line_width
 
 	common ___setzgraph___, old_dev
 
-	zgraph = keyword_set(zet) or keyword_set(mm)
+	zgraph = (n_elements(win) eq 0)
 
-
-    if keyword_set(mm) then begin
-		zgraph_chkvar, x, 110 ; mm
-		zgraph_chkvar, y, 90  ; mm
-    endif else begin
-		zgraph_chkvar, x, 800 ; px
-		zgraph_chkvar, y, 600 ; px
-    endelse
-
-
+	setgraph_checkvar, x, 110 ; mm
+	setgraph_checkvar, y, 90  ; mm
 
 	if zgraph then $
-	    zgraph_chkvar, dpi_, getenv('GSDO_IMAGES_DPI') $
-	    else zgraph_chkvar, dpi_, 90
+	    setgraph_checkvar, dpi, getenv('GSDO_IMAGES_DPI') $
+	    else setgraph_checkvar, dpi, 150
 
-	dpi = dpi_
+    sc = dpi / 25.4 ; calc scale [pix/mm]
 
-	sc = 1.         ; no scaling
-	lw = 1.         ; line width in pixels
-	txt_h = 10      ; text height in pixels
-
-
-	if keyword_set(mm) then begin
-	    sc = dpi / 25.4 ; dpi mode? calc scale [pix/mm]
-
-	    lw = 0.25       ; line width in mm
-	    txt_h = 1.8     ; text height in mm
-	endif
-
+    lw = 0.25       ; line width in mm
+    txt_h = 1.8     ; text height in mm
 
 
 	if keyword_set(clean) then begin
-		if n_elements(old_dev) ne 0 then set_plot, old_dev
+		set_plot,'X'
 		return
 	endif
 
 	if zgraph then begin
-	    if !D.NAME ne 'Z' then old_dev = !D.NAME
-
+		; hidpi mode
 	    set_plot, 'Z'
 	    device, z_buf = 0, $
-	            decomposed = 0,  $
+	            decomposed = 1,  $
 	            set_resolution = [x,y]*sc,  $
 	            set_pixel_depth = 24
-	endif
-
-	if ~zgraph then begin
+	endif else begin
+		; windowed mode
 	    set_plot,'X'
-	    zgraph_chkvar, win, 1
-	    device, decomposed = 0
+	    device, decomposed = 1
+		setgraph_checkvar, win, 1
 	    window, win, xs = (x*sc), ys = (y*sc)
-	endif
+	endelse
 
-	loadct, 0, /silent
-
-
-	!p.background = 255
-	!p.color = 0
-
-
+	!p.background = rgb(250,250,250)
+	!p.color = rgb(20,20,20)
 
 	device, set_character_size = [1,1.4] * txt_h * sc
 	line_width = sc * lw
@@ -84,17 +58,11 @@ pro set_graph, x, y,            $
 
 	xyouts, 0, 0, '!5' & erase
 
-
 	!x.thick = 0.85 * line_width
 	!y.thick = 0.85 * line_width
 	!z.thick = 0.85 * line_width
 
 	!X.MARGIN=[6.5,3.0]
 	!Y.MARGIN=[3.8,3.1]
-
-
-
-
-
 
 end

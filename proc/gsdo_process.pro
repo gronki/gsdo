@@ -4,26 +4,28 @@ function gsdo_process, fn_list,          $
         transform_param = a_param,        $
         prob_threshold = prob_threshold,    $
         erupt_movement_threshold = erupt_movement_threshold,		$
-        prob_smooth = prob_smooth,          $
+        blur_apriori = blur_apriori,          $
         area_threshold = erupt_area_threshold,      $
         erupt_intensity_threshold = erupt_intensity_threshold,			$
-        w_param = w_param, blur_fwhm = blur_fwhm,		$
+        w_param = w_param, blur_image = blur_image,		$
         verbose = verbose, n_found = n_found, $
         n_points_min = n_points_min,   $
+        map_max_tiles = map_max_tiles, $
         savestruct = savestruct, savegraph = savegraph
 
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
-    checkvar, prob_threshold, 0.3
-    checkvar, prob_smooth, 4
+    checkvar, prob_threshold, 0.5
+    checkvar, blur_apriori, 0.0
+    checkvar, blur_image, 0.0
 	checkvar, n_points_min, 8
     checkvar, erupt_area_threshold, 200
     checkvar, erupt_movement_threshold, 25
     checkvar, erupt_intensity_threshold, 30
+    checkvar, map_max_tiles, 12
     checkvar, w_param, 8
-    checkvar, blur_fwhm, 3.0
 
     _v = keyword_set(verbose)
 
@@ -67,10 +69,12 @@ function gsdo_process, fn_list,          $
     ix_broken = where( ~finite(data0), cn_broken )
     if cn_broken gt 0 then begin
     	if _v then print, 'DATA NEEDS FIXING!!!!!!!!!'
+        if _v then print, '     found black frames:', cn_dark
+        if _v then print, '     found bad pixels:', cn_broken - cn_dark * sz(1) * sz(2)
     	data_fix = convol( data0, gsdo_psf([0,0,4]), /normalize, /nan )
     	data0[ix_broken] = data_fix[ix_broken]
     	undefine, data_fix
-    	if _v then print, '     fixed pixels:', cn_broken
+        if _v then print, '     PROBLEM SOLWED'
     endif
 
 
@@ -96,18 +100,22 @@ function gsdo_process, fn_list,          $
 
     if _v then print, 'Transformation parameter: ', a_param
 
-    psf_smooth = gsdo_psf(blur_fwhm*[1,1,0])
-    n_clip = 3
-    idx = findgen((size(data0))[3]-2*n_clip) + n_clip
 
     ;;; reject first and last frames of index
+    n_clip = 1
+    idx = findgen((size(data0))[3]-2*n_clip) + n_clip
     index = index0[idx]
 
     ;;; raw copy
     data_raw = gsdo_fix(data0[*,*,idx],0)
 
     ;;; smooth
-    data0 = convol( temporary(data0), psf_smooth, /normalize, /nan )
+    if blur_image gt 0.1 then begin
+        if _v then print, 'Convolving with kernel FWHM  =', blur_image
+        data0 = convol( temporary(data0),   $
+                gsdo_psf(blur_image*[1,1,0],sig=3.5), $
+                /normalize, /nan )
+    endif else data0 = gsdo_fix(temporary(data0),0)
 
     data = data0[*,*,idx]
 
@@ -126,13 +134,12 @@ function gsdo_process, fn_list,          $
     if getenv('GSDO_EXTRAPLOT') ne 0 then begin
     	for i = 0, (size(data_raw))[3]-1 do begin
             set_graph, 180, 180, /mm
-            loadct,0,/silent
     		!p.multi = [0,2,2]
     		;wait, 0.08
-    		plot_image, asinh(reform(data_raw[*,*,i])), min=asinh(10.0), max=asinh(2.7e3), TITLE='ORIGINAL IMAGE'
-    		plot_image, reform(n_diff_t[*,*,i]), min=-0.1, max=0.1, TITLE='1st DERIVATIVE'
-    		plot_image, reform(n_diff2_t[*,*,i]), min=-0.1, max=0.1, TITLE='2nd DERIVATIVE'
-    		plot_image, reform(f_var[*,*,i]), min=0.15, max=0, TITLE='VARIABILITY IDX'
+    		plot_rgb, mono2rgb(asinh(reform(data_raw[*,*,i])), min=asinh(10.0), max=asinh(2.7e3)),  TITLE='ORIGINAL IMAGE'
+    		plot_rgb, mono2rgb(reform(n_diff_t[*,*,i]), min=-0.1, max=0.1), TITLE='1st DERIVATIVE'
+    		plot_rgb, mono2rgb(reform(n_diff2_t[*,*,i]), min=-0.1, max=0.1),  TITLE='2nd DERIVATIVE'
+    		plot_rgb, mono2rgb(reform(f_var[*,*,i]), min=0.15, max=0), TITLE='VARIABILITY IDX'
     		gsdo_shot
     	endfor
     endif
@@ -154,7 +161,10 @@ function gsdo_process, fn_list,          $
     if _v then gsdo_tic
     if _v then box_message, 'Generating activity map...'
 
-    imgapr_master = gsdo_activity_map(index, data, f_var, max_tiles=14, w_param=w_param)
+    imgapr_master = gsdo_activity_map(index, data, f_var,   $
+            max_tiles=map_max_tiles,  $
+            min_tiles = 2, $
+            w_param=w_param)
 
     if _v then print, 'Generating apriori done!'
     if _v then print, ' ----- OK ' + gsdo_toc()
@@ -164,27 +174,35 @@ function gsdo_process, fn_list,          $
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
-    if _v then gsdo_tic
-    if _v then box_message, 'Convoluntion of probability map'
 
 
-    if _v then print, '   threshold:', prob_threshold
 
-    imgapr_master_bl = convol(temporary(imgapr_master),    $
-          gsdo_psf(prob_smooth*[1,1,0]),/EDGE_TRUNC)
-    imgapr_master_mask = imgapr_master_bl ge prob_threshold
+    if blur_apriori gt 0.1 then begin
+        if _v then box_message, 'Convoluntion of probability map'
+        if _v then gsdo_tic
+        imgapr_master_bl = convol((imgapr_master),    $
+              gsdo_psf(blur_apriori*[1,1,0]),          $
+              /EDGE_TRUNC)
+        if _v then print, ' ----- OK ' + gsdo_toc()
+    endif  else imgapr_master_bl = imgapr_master
 
-    if _v then print, ' ----- OK ' + gsdo_toc()
+    imgapr_master_mask = temporary(imgapr_master_bl) ge prob_threshold
+    if _v then print, '   Probability threshold:', prob_threshold
 
-    if getenv('GSDO_EXTRAPLOT') ne 0 then begin
+
+    if gsdo_flag('GSDO_EXTRAPLOT') then begin
     	for i = 0, (size(data_raw))[3]-1 do begin
             set_graph, 180, 90, /mm
             loadct,0,/silent
     		;wait, 0.08
     		!p.multi = [0,2,1]
-    		plot_image, asinh(reform(data_raw[*,*,i])), min=asinh(10.0), max=asinh(2.7e3)
-    		contour, /overplot, reform(imgapr_master_bl[*,*,i]), levels=[0.5]
-    		plot_image, reform(imgapr_master_bl[*,*,i]), min=1, max=0
+    		plot_rgb, mono2rgb(asinh(reform(data_raw[*,*,i])), min=asinh(10.0), max=asinh(2.7e3))
+    		contour, /overplot, reform(imgapr_master_mask[*,*,i]), levels=[0.5]
+            if gsdo_flag('GSDO_IMAGES_COLOR') then begin
+                plot_rgb, mono2temperature(reform(imgapr_master[*,*,i]), min=1, max=0)
+            endif else begin
+                plot_rgb, mono2rgb(reform(imgapr_master[*,*,i]), min=1, max=0)
+            endelse
     		gsdo_shot
     	endfor
 
@@ -240,7 +258,7 @@ function gsdo_process, fn_list,          $
         f_var_m:    0.,                 $
 	nothing: 0 }
 
-    n = (size(imgapr_master_bl))[3]
+    n = (size(imgapr_master))[3]
 
     x_arr = gsdo_coord_arr(index, data, /X)
     y_arr = gsdo_coord_arr(index, data, /Y)
@@ -313,7 +331,7 @@ function gsdo_process, fn_list,          $
         if _v then print, '  area', tmp.area_x
 
         ; probability mask for weighted averages
-        wts_glob = float(mask[*,*,idx]) * imgapr_master_bl[*,*,idx]
+        wts_glob = float(mask[*,*,idx]) * imgapr_master[*,*,idx]
         wts_glob = wts_glob / total(wts_glob)
         wts_t = total(total(wts_glob,1),1)
         wts_loc = wts_glob / gsdo_v2m(wts_t, wts_glob, axis=3)
@@ -332,7 +350,7 @@ function gsdo_process, fn_list,          $
         if getenv('GSDO_EXTRAPLOT') ne 0 then begin
 		    set_graph, 120, 120, /mm
 		    !p.multi = 0
-		    plot_image, total(mask,3)
+		    plot_rgb, mono2rgb(-total(mask,3))
         endif
 
         ; positions
@@ -394,8 +412,8 @@ function gsdo_process, fn_list,          $
     		oplot, tmp.h_center[0:n-1], thick = 2
     		oplot, tmp.h_bottom[0:n-1], linestyle=2
     		xxx = makex(0,2*(n-1),0.001)
-    		oplot, xxx*0.5, tmp.h_traject_2[0] + xxx * tmp.h_traject_2[1] + xxx^2 * tmp.h_traject_2[2], color = 200
-    		oplot, xxx*0.5, tmp.h_traject_3[0] + xxx * tmp.h_traject_3[1] + xxx^2 * tmp.h_traject_3[2] + xxx^3 * tmp.h_traject_3[3], color = 100
+    		oplot, xxx*0.5, tmp.h_traject_2[0] + xxx * tmp.h_traject_2[1] + xxx^2 * tmp.h_traject_2[2], color = rgb(200,200,200)
+    		oplot, xxx*0.5, tmp.h_traject_3[0] + xxx * tmp.h_traject_3[1] + xxx^2 * tmp.h_traject_3[2] + xxx^3 * tmp.h_traject_3[3], color = rgb(100,100,100)
 
     		erfn = 'f_' + gsdo_datefn(tmp.t_peak) + '__'      $
                     + string(tmp.x_start,f='(I0)') + '_' + string(tmp.y_start,f='(I0)')
@@ -405,7 +423,7 @@ function gsdo_process, fn_list,          $
 
 
     	if keyword_set(savegraph) then begin
-    		gsdo_erup_sheets, tmp, index, data_raw, n_diff_t, float(mask)
+    		gsdo_erup_sheets, tmp, index, data_raw, n_diff_t, imgapr_master, float(mask)
     	endif
 
     	if keyword_set(savestruct) then begin
@@ -429,22 +447,6 @@ function gsdo_process, fn_list,          $
     ; if any eruptions were found
     if n_found gt 0 then begin
 
-
-;        if keyword_set(savestruct) then begin
-;            ; wygenerowac fnout
-;            k1 = anytim( interv_start, /EX )
-;            k2 = anytim( interv_end, /EX )
-;
-;            fnout = 'erup__' + string(wave,f='(I04)') + '__'      $
-;                    + string(k1[6],f='(I0)') + strjoin(string(k1[[5,4]],f='(I02)')) + '__'       $
-;                    + strjoin(string(k1[0:1],f='(I02)')) + '_' + strjoin(string(k2[0:1],f='(I02)'))
-;
-;            savpath = getenv('GSDO_DATA') + path_sep() + 'sav' + path_sep() + fnout + '.sav'
-;            save, filename = savpath, interv_start, interv_end, eruptions
-;            print, 'RESULT SAVED: ' + savpath
-;        endif
-
-
         if _v then begin
             print, 'Eruptions found: ', n_elements(eruptions)
             print, '  -- F I N I S H E D --   ' + gsdo_toc()
@@ -455,7 +457,7 @@ function gsdo_process, fn_list,          $
     endif else begin
 
         if _v then print, ' No eruptions found :('
-        return, -1
+        return, 0
 
     endelse
 

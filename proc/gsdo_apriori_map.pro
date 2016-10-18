@@ -11,7 +11,7 @@ function gsdo_apriori_map, index, data, f_var,  n_iter = n_iter, w_param = w_par
     af_var = alog10(f_var)
     l_data = alog10(float(data))
 
-	_w = (getenv('GSDO_EXTRAPLOT') ne 0)
+	_w = gsdo_flag('GSDO_EXTRAPLOT')
 
 	if _w then begin
 		set_graph, 180, 180, /mm
@@ -38,8 +38,8 @@ function gsdo_apriori_map, index, data, f_var,  n_iter = n_iter, w_param = w_par
     ;;; during division
 	h_q_conv = h_q
 	h_all_conv = h_all
-    h_q_conv.hist = convol(float(h_q.hist)/n_elements(ix_q), krn_hist, /EDGE_TRUNC)
-    h_all_conv.hist = convol(float(h_all.hist)/n_elements(data[0,0,*]), krn_hist, /EDGE_TRUNC)
+    h_q_conv.hist = convol(double(h_q.hist)/n_elements(ix_q), double(krn_hist), /EDGE_TRUNC)
+    h_all_conv.hist = convol(double(h_all.hist)/n_elements(data[0,0,*]), double(krn_hist), /EDGE_TRUNC)
 
     ;;; compute apriori probability that pixel is not quiet
     h_apr = h_q
@@ -52,6 +52,7 @@ function gsdo_apriori_map, index, data, f_var,  n_iter = n_iter, w_param = w_par
     for i = 0,n_iter-1 do begin
 		;;; calculate a-priori probability
 		h_apr.hist = gsdo_fix( ((h_all_conv.hist - (1.-s)*h_q_conv.hist)>0) / h_all_conv.hist,0)
+		h_apr.hist = float(h_apr.hist)
 		sh[i] = s
 
 		;;; remap it to an image
@@ -64,7 +65,8 @@ function gsdo_apriori_map, index, data, f_var,  n_iter = n_iter, w_param = w_par
 
     if _w then begin
 		gsdo_plot_hist2d, h_all_conv, /paper, TITLE='ALL PIXELS'
-		gsdo_plot_hist2d, h_apr, /paper, TITLE='APRIORI PROBABILITY'
+		gsdo_plot_hist2d, h_apr, /paper, TITLE='APRIORI PROBABILITY', $
+			min=0, max=1
 		; plot_image, h_apr.hist, min=1, max=0, /nosq
 		gsdo_plot_hist2d, h_q_conv, /paper, TITLE='QUIET PIXELS'
 		loadct,0,/silent
@@ -72,7 +74,7 @@ function gsdo_apriori_map, index, data, f_var,  n_iter = n_iter, w_param = w_par
 		; plot, sh, yr=[0.000001,1], /yl, ps=-1
 		gsdo_shot
 
-		if getenv('GSDO_MAKERECTS') ne 0 then begin
+		if gsdo_flag('GSDO_MAKERECTS') then begin
 		dd = getenv('GSDO_DATA') + '/img/rect-' + string(rectnr,f='(I05)')
 			mk_dir, dd
 			GSDO_QPNGS, dd + '/rect'  ,-imgapr, min=-1, max=0

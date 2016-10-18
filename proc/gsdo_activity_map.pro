@@ -1,12 +1,15 @@
 function gsdo_activity_map, index, data, f_var,         $
-        max_tiles = max_tiles, w_param = w_param
+        max_tiles = max_tiles, $
+        w_param = w_param, $
+        min_tiles = min_tiles
 
   on_error, 2
 
 
   ;;; define the grid of rectangular elements
   checkvar, max_tiles, 8
-  gridz = gsdo_tilegen(max_tiles,min_tiles=2)
+  checkvar, min_tiles, 1
+  gridz = gsdo_tilegen(max_tiles,min_tiles=min_tiles)
   sz = size(data)
   sq_areas = sz[1]*sz[2]/(gridz[0,*]*gridz[1,*])
 
@@ -68,8 +71,8 @@ function gsdo_activity_map, index, data, f_var,         $
 
     if getenv('GSDO_EXTRAPLOT') ne 0 then begin
 		set_graph, 120, 120, /mm
-		!p.multi = 0 & loadct, 0
-		plot_image, total(imgapr,3) / n_elements(sq_areas), min = 1, max = 0
+		!p.multi = 0
+		plot_rgb, mono2rgb(total(imgapr,3) / n_elements(sq_areas),min=0.5,max=0)
 		gsdo_shot
     endif
 
