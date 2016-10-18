@@ -1,19 +1,19 @@
 function gsdo_quiet_indices, index, cube1, cube2,  QUANT=quant, title=tit,  $
     PLOT=plot, QUIETNESS=quietness, w1 = w1, w2 = w2
 
-  CHECKVAR, quant, 0.2 
+  CHECKVAR, quant, 0.2
   checkvar, w1, 1.
   checkvar, w2, 1.
-  
+
   _p = keyword_set(plot)
-  
+
   N = n_elements(index)
 
-  
+
   m1 = dblarr(N)
   m2 = dblarr(N)
- 
-  
+
+
   for i = 0, N-1 do begin
     e = cube1[*,*,i]
     ixx = where(finite(e),nf)
@@ -28,36 +28,36 @@ function gsdo_quiet_indices, index, cube1, cube2,  QUANT=quant, title=tit,  $
   quietness = var_indic
 
   if _p then begin
-  
+
     CLEAR_UTPLOT
-    
+
     t = anytim((index.date_obs))
     t0 = min(t)
-    
+
    ; stop
-    checkvar, tit, 'GSDO_QUIET_INDICES'
+    checkvar, tit, 'SELECTING QUIET FRAMES'
     UTPLOT, t - t0, var_indic, t0,  ps=-1, TITLE=tit,    $
       YTITLE='Variability index'
-      
+
   endif
-  
-  
+
+
 ;  thr = median(var_indic[where(var_indic le median(var_indic))])
-;  
+;
 ;  if _p then OUTPLOT, max(t-t0)*[-1,2], [1,1] * ( thr ), t0, LineStyl=2
-;  
-;  
+;
+;
 ;  return, where(var_indic le thr)
 
 	s = sort(var_indic)
 	q_idx = s[0:round(n_elements(s)*quant)]
-	
-	
+
+
 	 if _p then begin
-    
+
 		OUTPLOT, (t - t0)[q_idx], var_indic[q_idx], t0,  ps=6, symsize=2
-		  
+
 	  endif
-	
+
 	return, q_idx
 end
