@@ -30,7 +30,7 @@
 
     test_mode = 0
 
-    marg = 3
+    marg = 1
 
     error_handling = 1
 
