@@ -130,17 +130,20 @@ function gsdo_process, fn_list,          $
     ;;; compute variability index
     f_var = sqrt( (n_diff_t)^2 + 0.25*(n_diff2_t)^2 )
 
+    imgdir = getenv('GSDO_DATA') + '/img/fulldisk_pre'
+    mk_dir,imgdir
+
 
     if getenv('GSDO_EXTRAPLOT') ne 0 then begin
     	for i = 0, (size(data_raw))[3]-1 do begin
             set_graph, 180, 180, /mm
     		!p.multi = [0,2,2]
     		;wait, 0.08
-    		plot_rgb, mono2rgb(asinh(reform(data_raw[*,*,i])), min=asinh(10.0), max=asinh(2.7e3)),  TITLE='ORIGINAL IMAGE'
-    		plot_rgb, mono2rgb(reform(n_diff_t[*,*,i]), min=-0.1, max=0.1), TITLE='1st DERIVATIVE'
-    		plot_rgb, mono2rgb(reform(n_diff2_t[*,*,i]), min=-0.1, max=0.1),  TITLE='2nd DERIVATIVE'
-    		plot_rgb, mono2rgb(reform(f_var[*,*,i]), min=0.15, max=0), TITLE='VARIABILITY IDX'
-    		gsdo_shot
+    		plot_rgb, mono2rgb(asinh(reform(data_raw[*,*,i])), min=asinh(10.0), max=asinh(2.7e3)),  TITLE='ORIGINAL IMAGE', index=index(i)
+    		plot_rgb, mono2rgb(reform(n_diff_t[*,*,i]), min=-0.1, max=0.1), TITLE='1st DERIVATIVE', index=index(i)
+    		plot_rgb, mono2rgb(reform(n_diff2_t[*,*,i]), min=-0.1, max=0.1),  TITLE='2nd DERIVATIVE', index=index(i)
+    		plot_rgb, mono2rgb(reform(f_var[*,*,i]), min=0.15, max=0), TITLE='VARIABILITY IDX', index=index(i)
+    		write_png, string(imgdir,'/',i+1,'.png', format='(A,A,I05,A)'), tvrd(/true)
     	endfor
     endif
 
@@ -191,19 +194,25 @@ function gsdo_process, fn_list,          $
 
 
     if gsdo_flag('GSDO_EXTRAPLOT') then begin
+        imgdir = getenv('GSDO_DATA') + '/img/fulldisk_apriori'
+        mk_dir,imgdir
+
     	for i = 0, (size(data_raw))[3]-1 do begin
             set_graph, 180, 90, /mm
             loadct,0,/silent
     		;wait, 0.08
     		!p.multi = [0,2,1]
-    		plot_rgb, mono2rgb(asinh(reform(data_raw[*,*,i])), min=asinh(10.0), max=asinh(2.7e3))
+    		plot_rgb, mono2rgb(asinh(reform(data_raw[*,*,i])), min=asinh(10.0), max=asinh(2.7e3)), index=index(i)
     		contour, /overplot, reform(imgapr_master_mask[*,*,i]), levels=[0.5]
             if gsdo_flag('GSDO_IMAGES_COLOR') then begin
-                plot_rgb, mono2temperature(reform(imgapr_master[*,*,i]), min=1, max=0)
+                plot_rgb, $
+                    mono2temperature(reform(imgapr_master[*,*,i]), min=1, max=0), $
+                            index=index(i)
             endif else begin
-                plot_rgb, mono2rgb(reform(imgapr_master[*,*,i]), min=1, max=0)
+                plot_rgb, mono2rgb(reform(imgapr_master[*,*,i]), min=1, max=0), $
+                            index=index(i)
             endelse
-    		gsdo_shot
+    		write_png, string(imgdir,'/',i+1,'.png', format='(A,A,I0,A)'), tvrd(/true)
     	endfor
 
 
@@ -347,10 +356,11 @@ function gsdo_process, fn_list,          $
 
         if  (tmp.intens_x le erupt_intensity_threshold) then continue
 
-        if getenv('GSDO_EXTRAPLOT') ne 0 then begin
-		    set_graph, 120, 120, /mm
+        if gsdo_flag('GSDO_EXTRAPLOT') then begin
+		    set_graph, 120, 120, 2
 		    !p.multi = 0
-		    plot_rgb, mono2rgb(-total(mask,3))
+            __ = total(mask*imgapr_master,3)
+		    plot_rgb, mono2temperature(__, min=0, max=max(__))
         endif
 
         ; positions
@@ -396,7 +406,7 @@ function gsdo_process, fn_list,          $
 
 
 
-    	if getenv('GSDO_EXTRAPLOT') ne 0 then begin
+    	if gsdo_flag('GSDO_EXTRAPLOT') then begin
     		set_graph, 180, 150, /mm
     		!p.multi = [0,2,2]
     		n = n_elements(idx)

@@ -92,9 +92,11 @@ pro gsdo_erup_sheets, erup, index, data, diff, apr, mask
         im_cm(0,*,*,*) = 1
         im_cm(1,*,*,*) = 1 - im_cm(1,*,*,*) * 0.1
         im_cm(2,*,*,*) = 1 - im_cm(2,*,*,*) * 0.3
-    	plot_rgb, im_sun * im_cm, TITLE = anytim(/yoh, index[i].date_obs)
-    	plot_rgb, mono2rgb(aprc(*,*,i),min=0,max=1) * (1-rgb_mask) + mono2temperature(aprc(*,*,i),min=0,max=1) * rgb_mask , TITLE = anytim(/yoh, index[i].date_obs)
-    	plot_rgb, mono2rgb(reform(diffc[*,*,i]), min = -0.15, max = 0.15)
+    	plot_rgb, im_sun * im_cm, index=indexc(i)
+    	plot_rgb, mono2rgb(aprc(*,*,i),min=0,max=1) * (1-rgb_mask) + mono2temperature(aprc(*,*,i),min=0,max=1) * rgb_mask , $
+            index=indexc(i)
+    	plot_rgb, mono2rgb(reform(diffc[*,*,i]), min = -0.15, max = 0.15), $
+            index=indexc(i)
 
     	write_png, er_dir + path_sep() + 'f' + string(j+1,f='(I03)') + '.png', tvrd(/true)
     endfor

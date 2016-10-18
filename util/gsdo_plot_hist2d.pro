@@ -1,17 +1,40 @@
-PRO GSDO_PLOT_HIST2D, h_str, paper=paper, max=max, min=min,  _EXTRA=_extra
+function gsdo_plot_hist2d_compress, x
+    a = 0.08
+    return, alog10(a + x) - alog10(a)
+end
+
+PRO GSDO_PLOT_HIST2D, h_str,            $
+        paper=paper,                    $
+        max=max,                        $
+        min=min,                        $
+        title=title,                    $
+        xtitle=xtitle,                  $
+        ytitle=ytitle,                  $
+        linear = linear
 
   if not keyword_set(max) then max = max(h_str.hist)
   if not keyword_set(min) then min = 0
 
   device, decomposed = 1
 
-  if gsdo_flag('GSDO_IMAGES_COLOR') then begin
-      g = mono2temperature(sqrt(h_str.hist),min=sqrt(max),max=sqrt(min))
+  if keyword_set(linear) then begin
+      _h = h_str.hist
+      _min = max
+      _max = min
   endif else begin
-      g = mono2rgb(sqrt(h_str.hist),min=sqrt(max),max=sqrt(min))
+      _h = gsdo_plot_hist2d_compress(h_str.hist)
+      _min = gsdo_plot_hist2d_compress(max)
+      _max = gsdo_plot_hist2d_compress(min)
   endelse
 
-  plot_rgb, g, /NOSQUARE,    $
-    ORIGIN=[h_str.min_x,h_str.min_y],    $
-    SCALE=[h_str.bin_x,h_str.bin_y], _EXTRA=_extra
+  if gsdo_flag('GSDO_IMAGES_COLOR') then begin
+      _g = mono2temperature(temporary(_h),min=_min,max=_max)
+  endif else begin
+      _g = mono2rgb(temporary(_h),min=_min,max=_max)
+  endelse
+
+  plot_rgb, temporary(_g), /NOSQUARE,    $
+        ORIGIN=[h_str.min_x,h_str.min_y],    $
+        SCALE=[h_str.bin_x,h_str.bin_y], $
+        title=title, xtitle=xtitle,  ytitle=ytitle
 END

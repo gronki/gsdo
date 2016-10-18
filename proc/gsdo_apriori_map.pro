@@ -15,7 +15,7 @@ function gsdo_apriori_map, index, data, f_var,  n_iter = n_iter, w_param = w_par
 
 	if _w then begin
 		set_graph, 180, 180, /mm
-		!p.multi = [0,2,2] & loadct, 0, /silent
+		!p.multi = [0,2,2]
     endif
     ;;; determine quiet frames
     ix_q = GSDO_QUIET_INDICES(index,f_var,data, w1=w_param, plot=_w)
@@ -26,7 +26,7 @@ function gsdo_apriori_map, index, data, f_var,  n_iter = n_iter, w_param = w_par
     h_q = GSDO_HIST2D(/STRUCT,   $
           af_var[*,*,ix_q], $
           l_data[*,*,ix_q],    $
-          MIN_X = -2.5, MAX_X = 0.5, N_X = b,   $
+          MIN_X = -2.0, MAX_X = 0.5, N_X = b,   $
           MIN_Y = 1.0, MAX_Y = 4.5, N_Y = b, /nonorm)
 
     h_all = gsdo_hist2d(/struct, like = h_q,        $
@@ -64,20 +64,23 @@ function gsdo_apriori_map, index, data, f_var,  n_iter = n_iter, w_param = w_par
     endfor
 
     if _w then begin
+		panel_dir = getenv('GSDO_PANEL_DIR')
+
 		gsdo_plot_hist2d, h_all_conv, /paper, TITLE='ALL PIXELS'
-		gsdo_plot_hist2d, h_apr, /paper, TITLE='APRIORI PROBABILITY', $
+		gsdo_plot_hist2d, h_apr, /paper, /linear, TITLE='APRIORI PROBABILITY', $
 			min=0, max=1
-		; plot_image, h_apr.hist, min=1, max=0, /nosq
 		gsdo_plot_hist2d, h_q_conv, /paper, TITLE='QUIET PIXELS'
-		loadct,0,/silent
-		; plot_image, total(imgapr,3), max=0, min=0.5*(size(imgapr))[3], title='s='+string(s)
-		; plot, sh, yr=[0.000001,1], /yl, ps=-1
-		gsdo_shot
+		write_png, panel_dir+'/histo.png', tvrd(/true)
 
 		if gsdo_flag('GSDO_MAKERECTS') then begin
-		dd = getenv('GSDO_DATA') + '/img/rect-' + string(rectnr,f='(I05)')
-			mk_dir, dd
-			GSDO_QPNGS, dd + '/rect'  ,-imgapr, min=-1, max=0
+			for i=0,n_elements(imgapr(0,0,*))-1 do begin
+				set_graph, 120, 120
+				!p.multi = 0
+				plot_rgb, mono2temperature(reform(imgapr(*,*,i)), min=1, max=0), $
+						index=index(i), $
+						title='APRIORI PROBABILITY'
+				write_png, string(panel_dir,'/a',i+1,'.png', format='(A,A,I05,A)'), tvrd(/true)
+			endfor
 			rectnr = rectnr + 1
 		endif
     endif

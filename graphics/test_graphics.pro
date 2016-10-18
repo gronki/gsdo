@@ -12,11 +12,15 @@ set_graph, 150, 120, 1
 ; !p.multi = [0,2,2,0,1]
 !p.multi = [0,1,2]
 
+!PATH = !PATH + ':' + expand_path('+..')
+
 r = mono2rainbow(b)
 plot, a, r[0,*,0], /noda, yr=[0,255]
 oplot, a, r[0,*,0], color=rgb(255,0,0)
 oplot, a, r[1,*,0], color=rgb(0,255,0)
 oplot, a, r[2,*,0], color=rgb(0,0,255)
+oplot, a, sqrt((r[0,*,0]/255.0)^2 + (r[1,*,0]/255.0)^2 + (r[2,*,0]/255.0)^2) * 255, $
+                color=rgb(40,40,40), linestyle=2
 plot_rgb, r, scale=[a(1)-a(0),1],/nosq
 
 ; r3 = mono2rainbow(b3)
@@ -36,7 +40,16 @@ plot, a, r[0,*,0], /noda, yr=[0,255]
 oplot, a, r[0,*,0], color=rgb(255,0,0)
 oplot, a, r[1,*,0], color=rgb(0,255,0)
 oplot, a, r[2,*,0], color=rgb(0,0,255)
+oplot, a, sqrt((r[0,*,0]/255.0)^2 + (r[1,*,0]/255.0)^2 + (r[2,*,0]/255.0)^2) * 255, $
+color=rgb(40,40,40), linestyle=2
 plot_rgb, r, scale=[a(1)-a(0),1],/nosq
 
+set_graph, 160,160, 3
+!p.multi = [0,2,2]
+x = findgen(1001) / 1000
+plot, x, sin(4*x + 1), title='TYTUL', subtitle='PODTYTUL', xtit='OS X', ytit='OS Y'
+plot, x, sin(2*x + 0.5), title='TYTUL', subtitle='PODTYTUL', xtit='OS X', ytit='OS Y'
+plot, x, sin(11*x + 1), title='TYTUL', subtitle='PODTYTUL', xtit='OS X', ytit='OS Y'
+plot, x, sin(9*x + 0.5), title='TYTUL', subtitle='PODTYTUL', xtit='OS X', ytit='OS Y'
 
 end

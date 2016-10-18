@@ -25,7 +25,7 @@ pro set_graph, x, y,  win,          $
     sc = dpi / 25.4 ; calc scale [pix/mm]
 
     lw = 0.25       ; line width in mm
-    txt_h = 1.8     ; text height in mm
+    txt_h = 2.2     ; text height in mm
 
 
 	if keyword_set(clean) then begin
@@ -52,17 +52,25 @@ pro set_graph, x, y,  win,          $
 	!p.color = rgb(20,20,20)
 
 	device, set_character_size = [1,1.4] * txt_h * sc
+	device, set_font='Times', /tt_font
+	!p.font = 1
+
 	line_width = sc * lw
 	!p.charthick = 0.8 * line_width
 	!p.thick = 1.2 * line_width
 
-	xyouts, 0, 0, '!5' & erase
+	erase
+
+	; xyouts, 0, 0, '!17' & erase
+	; 5 - bezszeryfowa podwojna
+	; 6 - szeryfowa podwojna
+	; 17 - szeryfowa potrojna
 
 	!x.thick = 0.85 * line_width
 	!y.thick = 0.85 * line_width
 	!z.thick = 0.85 * line_width
 
-	!X.MARGIN=[6.5,3.0]
-	!Y.MARGIN=[3.8,3.1]
+	!X.MARGIN=[6.4,2.5]
+	!Y.MARGIN=[4.7,2.2]
 
 end

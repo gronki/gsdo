@@ -40,27 +40,42 @@ function gsdo_activity_map, index, data, f_var,         $
 
     print, '   ----------------'
     print, 'Iteration ' + string(k+1,f='(I0)')
-    print, '   --> sq division:', reform(gridz[*,k])
+    grid_str = string(gridz[0,k],gridz[1,k],f='(I0,"x",I0)')
+    print, '   --> sq division: ', grid_str
+
+
+    if gsdo_flag('GSDO_EXTRAPLOT') then begin
+        square_dir = getenv('GSDO_DATA') + '/img/' + grid_str
+        mk_dir,square_dir
+    endif
 
     ;;; now iterate through small rectangles
 
     for i = 0, n_elements(sqr)-1 do begin
 
-      ;;; extract coordinates
-      xr = [ sqr[i].xll, sqr[i].xtr ]
-      yr = [ sqr[i].yll, sqr[i].ytr ]
+        if gsdo_flag('GSDO_EXTRAPLOT') then begin
+            panel_str = string(sqr(i).ix,sqr(i).iy,f='("X",I0,"Y",I0)')
+            panel_dir = square_dir + '/' + panel_str
+            mk_dir,panel_dir
+            setenv, 'GSDO_PANEL_DIR=' + panel_dir
+        endif
 
-      ;;; crop a rectangle
-      GSDO_IXDATA_CROP, index, data, index_crp, data_crp,    $
-          XRANGE=xr, YRANGE=yr, /PIXEL
-      GSDO_IXDATA_CROP, index, f_var, index_crp, f_var_crp,    $
-          XRANGE=xr, YRANGE=yr, /PIXEL
+        ;;; extract coordinates
+        xr = [ sqr[i].xll, sqr[i].xtr ]
+        yr = [ sqr[i].yll, sqr[i].ytr ]
 
-      ;;; compute a-priori probability of activity
-      imgapr_crp = gsdo_apriori_map( index_crp, data_crp, f_var_crp, w_param = w_param )
+        ;;; crop a rectangle
+        GSDO_IXDATA_CROP, index, data, index_crp, data_crp,    $
+                XRANGE=xr, YRANGE=yr, /PIXEL
+        GSDO_IXDATA_CROP, index, f_var, index_crp, f_var_crp,    $
+                XRANGE=xr, YRANGE=yr, /PIXEL
 
-      ;;; add the square to entire image
-      imgapr[xr[0]:xr[1],yr[0]:yr[1],*] = imgapr_crp
+        ;;; compute a-priori probability of activity
+        imgapr_crp = gsdo_apriori_map( index_crp, data_crp, f_var_crp,  $
+                w_param = w_param )
+
+        ;;; add the square to entire image
+        imgapr[xr[0]:xr[1],yr[0]:yr[1],*] = imgapr_crp
     endfor
 
     print, '            OK'
@@ -72,8 +87,8 @@ function gsdo_activity_map, index, data, f_var,         $
     if getenv('GSDO_EXTRAPLOT') ne 0 then begin
 		set_graph, 120, 120, /mm
 		!p.multi = 0
-		plot_rgb, mono2rgb(total(imgapr,3) / n_elements(sq_areas),min=0.5,max=0)
-		gsdo_shot
+		plot_rgb, mono2rgb(total(imgapr,3) / n_elements(sq_areas),min=0.5,max=0), index=index(0), title='FINAL PROBABILITY MAP for ' + grid_str
+		write_png, square_dir + '/map.png', tvrd(/true)
     endif
 
   endfor
