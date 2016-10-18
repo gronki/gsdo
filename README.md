@@ -1,16 +1,16 @@
-# gsdo
+# GSDO
 Automatyczna metoda poszukiwania erupcji w danych SDO/AIA.
 
 Kontakt: gronki@camk.edu.pl
 
 ## Pobieranie programu
-Aby pobrać program na swój komputer (wymagany system Linux i instalacja IDL w wersji 7) najłatwiej wykonać polecenie (w katalogu roboczym, w którym chcemy ściągnąć program):
+Aby pobrać program na swój komputer (wymagany system **Linux/UNIX/OSX**, powłoka **tcsh** i instalacja **IDL** w wersji 7 lub wyższej) najłatwiej wykonać polecenie (w katalogu roboczym, w którym chcemy ściągnąć program):
 ```
 git clone --recursive https://github.com/gronki/gsdo.git
 ```
 
 ## Instalacja SSW w katalogu domowym
-Program **GSDO** zakłada, że SSW z wymaganymi pakietami znajduję się w lokalizacji ``$HOME/.local/ssw``. Aby zainstalować SSW w tym położeniu, można uruchomić skrypt ``install.csh`` znajdujący się w katalogu ``ssw``.
+Program **GSDO** zakłada, że SSW z wymaganymi pakietami znajduję się w lokalizacji ``$HOME/.local/ssw``. Aby zainstalować SSW w tym położeniu, można uruchomić skrypt ``install`` znajdujący się w katalogu ``ssw``.
 ```
 ssw/install
 ```
