@@ -16,6 +16,8 @@ pro plot_rgb, im, min=min, max=max, $
             title=title, xtitle=xtitle, ytitle=ytitle, $
             subtitle = subtitle, $
             _extra=_extra
-    endif else  plot_image, rgb2plotimage(im),  $
-        min=0, max=255, title=title, _extra=_extra
+    endif else  plot_image, rgb2plotimage(im), min=0, max=255, $
+        title=title, xtitle=xtitle, ytitle=ytitle, $
+        subtitle = subtitle, $
+        _extra=_extra
 end

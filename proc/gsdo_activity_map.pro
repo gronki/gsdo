@@ -85,10 +85,22 @@ function gsdo_activity_map, index, data, f_var,         $
             + imgapr / n_elements(sq_areas)
 
     if getenv('GSDO_EXTRAPLOT') ne 0 then begin
-		set_graph, 120, 120, /mm
-		!p.multi = 0
-		plot_rgb, mono2rgb(total(imgapr,3) / n_elements(sq_areas),min=0.5,max=0), index=index(0), title='FINAL PROBABILITY MAP for ' + grid_str
-		write_png, square_dir + '/map.png', tvrd(/true)
+        pngdir = square_dir + '/composite'
+        mk_dir, pngdir
+        for i = 0, n_elements(imgapr(0,0,*))-1 do begin
+            set_graph, 120, 120
+            !p.multi = 0
+    		plot_rgb, mono2temperature(reform(imgapr(*,*,i)),min=1,max=0), $
+                index=index(i), $
+                title=string($
+                        'FINAL PROBABILITY MAP for ',$
+                        grid_str,$
+                        ' (frame ',$
+                        i+1,$
+                        ')', $
+                    format='(A,A,A,I0,A)')
+    		write_png, pngdir + '/' + string(i+1,'.png',f='(I05,A)'), tvrd(/true)
+        endfor
     endif
 
   endfor

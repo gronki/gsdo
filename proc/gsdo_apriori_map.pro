@@ -33,7 +33,7 @@ function gsdo_apriori_map, index, data, f_var,  n_iter = n_iter, w_param = w_par
             af_var, l_data, /nonorm)
 
     ;;; kernel used to smooth probabilities
-    krn_hist = gsdo_psf(4.0*[1,1],sigma=5)
+    krn_hist =  gsdo_psf2d(4.5)
     ;;; smooth probability distribution for less noise
     ;;; during division
 	h_q_conv = h_q
@@ -66,10 +66,16 @@ function gsdo_apriori_map, index, data, f_var,  n_iter = n_iter, w_param = w_par
     if _w then begin
 		panel_dir = getenv('GSDO_PANEL_DIR')
 
-		gsdo_plot_hist2d, h_all_conv, /paper, TITLE='ALL PIXELS'
+		gsdo_plot_hist2d, h_all_conv, /paper, TITLE='ALL PIXELS', $
+			xtitle='!7log!d10!n(!16Variability!x)', $
+			ytitle='!7log!d10!n(!16Intensity!x)'
 		gsdo_plot_hist2d, h_apr, /paper, /linear, TITLE='APRIORI PROBABILITY', $
+			xtitle='!7log!d10!n(!16Variability!x)', $
+			ytitle='!7log!d10!n(!16Intensity!x)', $
 			min=0, max=1
-		gsdo_plot_hist2d, h_q_conv, /paper, TITLE='QUIET PIXELS'
+		gsdo_plot_hist2d, h_q_conv, /paper, TITLE='QUIET PIXELS', $
+			xtitle='!7log!d10!n(!16Variability!x)', $
+			ytitle='!7log!d10!n(!16Intensity!x)'
 		write_png, panel_dir+'/histo.png', tvrd(/true)
 
 		if gsdo_flag('GSDO_MAKERECTS') then begin

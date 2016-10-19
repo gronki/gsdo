@@ -112,8 +112,9 @@ function gsdo_process, fn_list,          $
     ;;; smooth
     if blur_image gt 0.1 then begin
         if _v then print, 'Convolving with kernel FWHM  =', blur_image
+        psf2d = gsdo_psf2d(blur_image)
         data0 = convol( temporary(data0),   $
-                gsdo_psf(blur_image*[1,1,0],sig=3.5), $
+                reform(psf2d,[ size(psf2d,/dim), 1 ]), $
                 /normalize, /nan )
     endif else data0 = gsdo_fix(temporary(data0),0)
 
@@ -183,8 +184,9 @@ function gsdo_process, fn_list,          $
     if blur_apriori gt 0.1 then begin
         if _v then box_message, 'Convoluntion of probability map'
         if _v then gsdo_tic
+        psf2d = gsdo_psf2d(blur_apriori)
         imgapr_master_bl = convol((imgapr_master),    $
-              gsdo_psf(blur_apriori*[1,1,0]),          $
+              reform(psf2d,[size(psf2d,/dim),1]),          $
               /EDGE_TRUNC)
         if _v then print, ' ----- OK ' + gsdo_toc()
     endif  else imgapr_master_bl = imgapr_master
@@ -212,7 +214,7 @@ function gsdo_process, fn_list,          $
                 plot_rgb, mono2rgb(reform(imgapr_master[*,*,i]), min=1, max=0), $
                             index=index(i)
             endelse
-    		write_png, string(imgdir,'/',i+1,'.png', format='(A,A,I0,A)'), tvrd(/true)
+    		write_png, string(imgdir,'/',i+1,'.png', format='(A,A,I05,A)'), tvrd(/true)
     	endfor
 
 
@@ -356,13 +358,6 @@ function gsdo_process, fn_list,          $
 
         if  (tmp.intens_x le erupt_intensity_threshold) then continue
 
-        if gsdo_flag('GSDO_EXTRAPLOT') then begin
-		    set_graph, 120, 120, 2
-		    !p.multi = 0
-            __ = total(mask*imgapr_master,3)
-		    plot_rgb, mono2temperature(__, min=0, max=max(__))
-        endif
-
         ; positions
         tmp.x_center = total(total(wts_loc * x_arr[*,*,idx],1),1)
         tmp.y_center = total(total(wts_loc * y_arr[*,*,idx],1),1)
@@ -403,33 +398,6 @@ function gsdo_process, fn_list,          $
         	if _v then print, 'Trajectory:'
         	if _v then print, tmp.h_traject_2
         endif else continue
-
-
-
-    	if gsdo_flag('GSDO_EXTRAPLOT') then begin
-    		set_graph, 180, 150, /mm
-    		!p.multi = [0,2,2]
-    		n = n_elements(idx)
-
-    		plot, tmp.x_center[0:n-1], tmp.y_center[0:n-1], ps=-1, title = 'POSITION'
-    		oplot, tmp.x_start + 50*[0,vec_x], tmp.y_start + 50*[0,vec_y], thick = 2
-
-    		plot, tmp.area[0:n-1], title = 'AREA'
-
-    		plot, tmp.intens[0:n-1], title = 'INTENSITY'
-
-    		plot, tmp.h_front[0:n-1], title = 'HEIGHT'
-    		oplot, tmp.h_center[0:n-1], thick = 2
-    		oplot, tmp.h_bottom[0:n-1], linestyle=2
-    		xxx = makex(0,2*(n-1),0.001)
-    		oplot, xxx*0.5, tmp.h_traject_2[0] + xxx * tmp.h_traject_2[1] + xxx^2 * tmp.h_traject_2[2], color = rgb(200,200,200)
-    		oplot, xxx*0.5, tmp.h_traject_3[0] + xxx * tmp.h_traject_3[1] + xxx^2 * tmp.h_traject_3[2] + xxx^3 * tmp.h_traject_3[3], color = rgb(100,100,100)
-
-    		erfn = 'f_' + gsdo_datefn(tmp.t_peak) + '__'      $
-                    + string(tmp.x_start,f='(I0)') + '_' + string(tmp.y_start,f='(I0)')
-
-            write_png, getenv('GSDO_DATA') + path_sep() + 'img' + path_sep() + erfn + '.png', tvrd(/true)
-    	endif
 
 
     	if keyword_set(savegraph) then begin
