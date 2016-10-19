@@ -107,11 +107,11 @@
 
         eruptions = gsdo_process(fn,                        $
                 prob_threshold = 0.45,                      $
-                blur_image = 1.5,                           $
-                blur_apriori = 1.5,                         $
+                blur_image = 1.8,                           $
+                blur_apriori = 3.0,                         $
                 transform_param = 14.,                      $
-                area_threshold = 3.14 * 12*12 ,             $
-                map_max_tiles = 12,                         $
+                area_threshold = 3.14 * 10*10 ,             $
+                map_max_tiles = 9,                          $
                 n_points_min = 10,							$
                 erupt_movement_threshold = 12,				$
                 erupt_intensity_threshold = 15,				$
