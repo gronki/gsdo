@@ -27,13 +27,9 @@ PRO GSDO_PLOT_HIST2D, h_str,            $
       _max = gsdo_plot_hist2d_compress(min)
   endelse
 
-  if gsdo_flag('GSDO_IMAGES_COLOR') then begin
-      _g = mono2temperature(temporary(_h),min=_min,max=_max)
-  endif else begin
-      _g = mono2rgb(temporary(_h),min=_min,max=_max)
-  endelse
-
-  plot_rgb, temporary(_g), /NOSQUARE,    $
+  plot_rgb, $
+        mono2temperature(temporary(_h),min=_min,max=_max), $
+        /NOSQUARE,    $
         ORIGIN=[h_str.min_x,h_str.min_y],    $
         SCALE=[h_str.bin_x,h_str.bin_y], $
         title=title, xtitle=xtitle,  ytitle=ytitle
