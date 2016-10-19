@@ -58,6 +58,7 @@ pro set_graph, x, y,  win,          $
 	line_width = sc * lw
 	!p.charthick = 0.8 * line_width
 	!p.thick = 1.2 * line_width
+	!p.multi = 0
 
 	erase
 
