@@ -104,7 +104,7 @@ function gsdo_process, fn_list,          $
     index = index0[idx]
 
     ;;; raw copy
-    data_raw = gsdo_fix(data0[*,*,idx],0)
+    dataraw = gsdo_fix(data0[*,*,idx],0)
 
     ;;; smooth
     if blur_image gt 0.1 then begin
@@ -120,34 +120,32 @@ function gsdo_process, fn_list,          $
     diff_t = (gsdo_deriv( data0, axis=3, order=1 ))[*,*,idx]
 
     ;;; normalized differentials -- computed from transformed fucntion
-    n_data = gsdo_fix(alog(data0+a_param)-alog(float(a_param)),0)
+    n_data = gsdo_fix(alog(temporary(data0)+a_param),0)
     n_diff_t = (gsdo_deriv( n_data, axis=3, order=1 ))[*,*,idx]
-    n_diff2_t = (gsdo_deriv( n_data, axis=3, order=2 ))[*,*,idx]
+    n_diff_tt = (gsdo_deriv( temporary(n_data), axis=3, order=2 ))[*,*,idx]
 
 
     ;;; compute variability index
-    f_var = sqrt( (n_diff_t)^2 + 0.25*(n_diff2_t)^2 )
+    f_var = sqrt( (n_diff_t)^2 + 0.25*(n_diff_tt)^2 )
 
     imgdir = getenv('GSDO_DATA') + '/img/fulldisk_pre'
     mk_dir,imgdir
 
 
     if getenv('GSDO_EXTRAPLOT') ne 0 then begin
-    	for i = 0, (size(data_raw))[3]-1 do begin
+    	for i = 0, (size(dataraw))[3]-1 do begin
             set_graph, 180, 180, /mm
     		!p.multi = [0,2,2]
     		;wait, 0.08
-    		plot_rgb, mono2rgb(asinh(reform(data_raw[*,*,i])), min=asinh(10.0), max=asinh(2.7e3)),  TITLE='ORIGINAL IMAGE', index=index(i)
+    		plot_rgb, mono2rgb(asinh(reform(dataraw[*,*,i])), min=asinh(10.0), max=asinh(2.7e3)),  TITLE='ORIGINAL IMAGE', index=index(i)
     		plot_rgb, mono2rgb(reform(n_diff_t[*,*,i]), min=-0.1, max=0.1), TITLE='1st DERIVATIVE', index=index(i)
-    		plot_rgb, mono2rgb(reform(n_diff2_t[*,*,i]), min=-0.1, max=0.1),  TITLE='2nd DERIVATIVE', index=index(i)
+    		plot_rgb, mono2rgb(reform(n_diff_tt[*,*,i]), min=-0.1, max=0.1),  TITLE='2nd DERIVATIVE', index=index(i)
     		plot_rgb, mono2rgb(reform(f_var[*,*,i]), min=0.15, max=0), TITLE='VARIABILITY IDX', index=index(i)
     		write_png, string(imgdir,'/',i+1,'.png', format='(A,A,I05,A)'), tvrd(/true)
     	endfor
     endif
 
-	undefine, n_data
-	undefine, data0
-	undefine, n_diff2_t
+	n_diff_tt = 0
 
     if _v then print, '   -->  differentials OK'
     if _v then print, '    DONE ' + GSDO_TOC()
@@ -194,11 +192,11 @@ function gsdo_process, fn_list,          $
         imgdir = getenv('GSDO_DATA') + '/img/fulldisk_apriori'
         mk_dir,imgdir
 
-    	for i = 0, (size(data_raw))[3]-1 do begin
+    	for i = 0, (size(dataraw))[3]-1 do begin
             set_graph, 180, 90, /mm
             loadct,0,/silent
     		!p.multi = [0,2,1]
-    		plot_rgb, mono2rgb(asinh(reform(data_raw[*,*,i])), min=asinh(10.0), max=asinh(2.7e3)), index=index(i)
+    		plot_rgb, mono2rgb(asinh(reform(dataraw[*,*,i])), min=asinh(10.0), max=asinh(2.7e3)), index=index(i)
     		contour, /overplot, reform(imgapr_master_mask[*,*,i]), levels=[0.5]
             if gsdo_flag('GSDO_IMAGES_COLOR') then begin
                 plot_rgb, $
@@ -342,9 +340,9 @@ function gsdo_process, fn_list,          $
         wts_loc = wts_glob / gsdo_v2m(wts_t, wts_glob, axis=3)
 
         ; intesities, differences
-        tmp.intens = total(total(wts_loc * data_raw[*,*,idx],1),1)
+        tmp.intens = total(total(wts_loc * dataraw[*,*,idx],1),1)
         tmp.intens_x = max(tmp.intens)
-        tmp.intens_m = total(wts_glob * data_raw[*,*,idx])
+        tmp.intens_m = total(wts_glob * dataraw[*,*,idx])
         tmp.diff_t = total(total(wts_loc * diff_t[*,*,idx],1),1)
         tmp.n_diff_t = total(total(wts_loc * n_diff_t[*,*,idx],1),1)
         tmp.f_var = total(total(wts_loc * f_var[*,*,idx],1),1)
@@ -395,7 +393,7 @@ function gsdo_process, fn_list,          $
 
 
     	if keyword_set(savegraph) then begin
-    		gsdo_erup_sheets, tmp, index, data_raw, n_diff_t, imgapr_master, float(mask)
+    		gsdo_erup_sheets, tmp, index, dataraw, n_diff_t, imgapr_master, float(mask)
     	endif
 
     	if keyword_set(savestruct) then begin
