@@ -1,0 +1,19 @@
+#!/bin/bash
+
+set -e -x
+
+IFS=$'\n'
+
+LIST1=$(find data/erup -name 'ER_*' -type d)
+
+mkdir -p data/erup/gif
+
+for d in $LIST1
+do
+    if [[ ! -f "$d/eruption.gif" ]]
+    then
+        ff=$(echo "$d" | gawk -F '/' '{ print $3 }')
+        convert -delay 6 -loop -1 "$d/f???.png" "$d/eruption.gif"
+        ln -f "$d/eruption.gif" "$d/../gif/$ff.gif"
+    fi
+done
