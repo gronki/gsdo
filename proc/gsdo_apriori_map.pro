@@ -8,8 +8,8 @@ function gsdo_apriori_map, index, data, f_var,  n_iter = n_iter, w_param = w_par
 	checkvar, rectnr, 1
 
     ;;; compress using asinh
-    af_var = alog10(f_var)
-    l_data = alog10(float(data))
+    log_fvar = alog10(f_var)
+    log_data = alog10(float(data))
 
 	_w = gsdo_flag('GSDO_EXTRAPLOT')
 
@@ -24,13 +24,13 @@ function gsdo_apriori_map, index, data, f_var,  n_iter = n_iter, w_param = w_par
 
     ;;; and make histogram of them
     h_q = GSDO_HIST2D(/STRUCT,   $
-          af_var[*,*,ix_q], $
-          l_data[*,*,ix_q],    $
+          log_fvar[*,*,ix_q], $
+          log_data[*,*,ix_q],    $
           MIN_X = -2.0, MAX_X = 0.5, N_X = b,   $
           MIN_Y = 1.0, MAX_Y = 4.5, N_Y = b, /nonorm)
 
     h_all = gsdo_hist2d(/struct, like = h_q,        $
-            af_var, l_data, /nonorm)
+            log_fvar, log_data, /nonorm)
 
     ;;; kernel used to smooth probabilities
     krn_hist =  gsdo_psf2d(4.5)
@@ -56,7 +56,7 @@ function gsdo_apriori_map, index, data, f_var,  n_iter = n_iter, w_param = w_par
 		sh[i] = s
 
 		;;; remap it to an image
-		imgapr = GSDO_HIST2D_REMAP(af_var, l_data, h_apr)
+		imgapr = GSDO_HIST2D_REMAP(log_fvar, log_data, h_apr)
 
 		;;; recompute eruption fill factor
 		s = ( total(float(imgapr gt 0.5)) / n_elements(imgapr) ) < 0.5
