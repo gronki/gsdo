@@ -17,7 +17,7 @@ function gsdo_psf, fwhm, sigma=sigm, dim=dim, DOUBLE=double
   endif
 
   ;;; standard deviation
-  sigma = fwhm/2.
+  sigma = fwhm / 2.35482
   ;;; fwhm size
   npix = ceil(sigm*fwhm) > 1
   ;;; center point
