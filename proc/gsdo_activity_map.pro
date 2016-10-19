@@ -44,21 +44,9 @@ function gsdo_activity_map, index, data, f_var,         $
     print, '   --> sq division: ', grid_str
 
 
-    if gsdo_flag('GSDO_EXTRAPLOT') then begin
-        square_dir = getenv('GSDO_DATA') + '/img/' + grid_str
-        mk_dir,square_dir
-    endif
-
     ;;; now iterate through small rectangles
 
     for i = 0, n_elements(sqr)-1 do begin
-
-        if gsdo_flag('GSDO_EXTRAPLOT') then begin
-            panel_str = string(sqr(i).ix,sqr(i).iy,f='("X",I0,"Y",I0)')
-            panel_dir = square_dir + '/' + panel_str
-            mk_dir,panel_dir
-            setenv, 'GSDO_PANEL_DIR=' + panel_dir
-        endif
 
         ;;; extract coordinates
         xr = [ sqr[i].xll, sqr[i].xtr ]
@@ -83,25 +71,6 @@ function gsdo_activity_map, index, data, f_var,         $
     ;;; add the contribution to the stack
     imgapr_master = temporary(imgapr_master)    $
             + imgapr / n_elements(sq_areas)
-
-    if getenv('GSDO_EXTRAPLOT') ne 0 then begin
-        pngdir = square_dir + '/composite'
-        mk_dir, pngdir
-        for i = 0, n_elements(imgapr(0,0,*))-1 do begin
-            set_graph, 120, 120
-            !p.multi = 0
-    		plot_rgb, mono2temperature(reform(imgapr(*,*,i)),min=1,max=0), $
-                index=index(i), $
-                title=string($
-                        'FINAL PROBABILITY MAP for ',$
-                        grid_str,$
-                        ' (frame ',$
-                        i+1,$
-                        ')', $
-                    format='(A,A,A,I0,A)')
-    		write_png, pngdir + '/' + string(i+1,'.png',f='(I05,A)'), tvrd(/true)
-        endfor
-    endif
 
   endfor
 

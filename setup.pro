@@ -2,11 +2,6 @@
 
     findpro, 'gsdo_process', prolist=l
 
-    setenv, 'GSDO_IMAGES_DPI=300'
-    setenv, 'GSDO_IMAGES_COLOR=1'
-    setenv, 'GSDO_EXTRAPLOT=0'
-    setenv, 'GSDO_MAKERECTS=0'
-
     if l[0] eq '' then begin
 
         !PATH = !PATH + path_sep(/s) + expand_path('+' + curdir())

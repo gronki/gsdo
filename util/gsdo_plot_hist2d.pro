@@ -1,30 +1,30 @@
-function gsdo_plot_hist2d_compress, x
-    a = 0.08
-    return, alog10(a + x) - alog10(a)
-end
-
 PRO GSDO_PLOT_HIST2D, h_str,            $
-        paper=paper,                    $
         max=max,                        $
         min=min,                        $
         title=title,                    $
         xtitle=xtitle,                  $
         ytitle=ytitle,                  $
-        linear = linear
+        linear = linear,                $
+        sqrt_scaling = sqrt_scaling,    $
+        asinh_scaling = asinh_scaling
 
   if not keyword_set(max) then max = max(h_str.hist)
   if not keyword_set(min) then min = 0
 
   device, decomposed = 1
 
-  if keyword_set(linear) then begin
+  if keyword_set(asinh_scaling) then begin
+      _h = asinh(h_str.hist)
+      _min = asinh(max)
+      _max = asinh(min)
+  endif else if keyword_set(sqrt_scaling) then begin
+      _h = sqrt(h_str.hist)
+      _min = sqrt(max)
+      _max = sqrt(min)
+  endif else begin
       _h = h_str.hist
       _min = max
       _max = min
-  endif else begin
-      _h = gsdo_plot_hist2d_compress(h_str.hist)
-      _min = gsdo_plot_hist2d_compress(max)
-      _max = gsdo_plot_hist2d_compress(min)
   endelse
 
   plot_rgb, $

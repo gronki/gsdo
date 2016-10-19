@@ -33,10 +33,10 @@ function gsdo_process, fn_list,          $
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-    if _v then help, /MEMORY
+    help, /MEMORY
 
-    if _v then gsdo_tic
-    if _v then box_message, 'Reading images...'
+    gsdo_tic
+    gsdo_header, 'Reading images...'
 
     m = 1
     read_sdo, fn_list, index0, data0n, m, m, 1024 - 2*m, 1024 - 2*m, /UNCOMP_DELETE, /NOSHELL
@@ -54,7 +54,7 @@ function gsdo_process, fn_list,          $
     data_corr =  0.17
     data0 = (float(temporary(data0n)) + float(data_corr)) / temporary(exx)
 
-    if _v then print, '    DONE ' + GSDO_TOC()
+    print, '    DONE ' + GSDO_TOC()
 
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -65,13 +65,13 @@ function gsdo_process, fn_list,          $
     if cn_dark gt 0 then data0[*,*,ix_dark] = !values.f_nan
     ix_broken = where( ~finite(data0), cn_broken )
     if cn_broken gt 0 then begin
-    	if _v then print, 'DATA NEEDS FIXING!!!!!!!!!'
-        if _v then print, '     found black frames:', cn_dark
-        if _v then print, '     found bad pixels:', cn_broken - cn_dark * sz(1) * sz(2)
+    	gsdo_header, 'FIXING THE DATA'
+        print, '     found black frames:', cn_dark
+        print, '     found bad pixels:', cn_broken - cn_dark * sz(1) * sz(2)
     	data_fix = convol( data0, gsdo_psf([0,0,4]), /normalize, /nan )
     	data0[ix_broken] = data_fix[ix_broken]
     	undefine, data_fix
-        if _v then print, '     PROBLEM SOLWED'
+        print, '     PROBLEM SOLWED'
     endif
 
 
@@ -79,8 +79,7 @@ function gsdo_process, fn_list,          $
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
-    if _v then gsdo_tic
-    if _v then box_message, 'Computing diff imgs...'
+    gsdo_tic
 
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -95,7 +94,7 @@ function gsdo_process, fn_list,          $
 
     checkvar, a_param, a_def, 1.
 
-    if _v then print, 'Transformation parameter: ', a_param
+    print, 'Transformation parameter: ', a_param
 
 
     ;;; reject first and last frames of index
@@ -108,7 +107,8 @@ function gsdo_process, fn_list,          $
 
     ;;; smooth
     if blur_image gt 0.1 then begin
-        if _v then print, 'Convolving with kernel FWHM  =', blur_image
+        gsdo_header, 'COMPUTING CONVOLUNTION'
+        print, 'Convolving with kernel FWHM  =', blur_image
         psf2d = gsdo_psf2d(blur_image)
         data0 = convol( temporary(data0),   $
                 reform(psf2d,[ size(psf2d,/dim), 1 ]), $
@@ -116,6 +116,8 @@ function gsdo_process, fn_list,          $
     endif else data0 = gsdo_fix(temporary(data0),0)
 
     data = data0[*,*,idx]
+
+    gsdo_header, 'COMPUTING DERIVATIVES'
 
     diff_t = (gsdo_deriv( data0, axis=3, order=1 ))[*,*,idx]
 
@@ -128,43 +130,26 @@ function gsdo_process, fn_list,          $
     ;;; compute variability index
     f_var = sqrt( (n_diff_t)^2 + 0.25*(n_diff_tt)^2 )
 
-    imgdir = getenv('GSDO_DATA') + '/img/fulldisk_pre'
-    mk_dir,imgdir
-
-
-    if getenv('GSDO_EXTRAPLOT') ne 0 then begin
-    	for i = 0, (size(dataraw))[3]-1 do begin
-            set_graph, 180, 180, /mm
-    		!p.multi = [0,2,2]
-    		;wait, 0.08
-    		plot_rgb, mono2rgb(asinh(reform(dataraw[*,*,i])), min=asinh(10.0), max=asinh(2.7e3)),  TITLE='ORIGINAL IMAGE', index=index(i)
-    		plot_rgb, mono2rgb(reform(n_diff_t[*,*,i]), min=-0.1, max=0.1), TITLE='1st DERIVATIVE', index=index(i)
-    		plot_rgb, mono2rgb(reform(n_diff_tt[*,*,i]), min=-0.1, max=0.1),  TITLE='2nd DERIVATIVE', index=index(i)
-    		plot_rgb, mono2rgb(reform(f_var[*,*,i]), min=0.15, max=0), TITLE='VARIABILITY IDX', index=index(i)
-    		write_png, string(imgdir,'/',i+1,'.png', format='(A,A,I05,A)'), tvrd(/true)
-    	endfor
-    endif
-
 	n_diff_tt = 0
 
-    if _v then print, '   -->  differentials OK'
-    if _v then print, '    DONE ' + GSDO_TOC()
+    print, '   -->  differentials OK'
+    print, '    DONE ' + GSDO_TOC()
 
 
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
-    if _v then gsdo_tic
-    if _v then box_message, 'Generating activity map...'
+    gsdo_tic
+    gsdo_header, 'GENERATING ACTIVITY MAP'
 
     imgapr_master = gsdo_activity_map(index, data, f_var,   $
             max_tiles=map_max_tiles,  $
             min_tiles = 2, $
             w_param=w_param)
 
-    if _v then print, 'Generating apriori done!'
-    if _v then print, ' ----- OK ' + gsdo_toc()
+    print, 'Generating apriori done!'
+    print, ' ----- OK ' + gsdo_toc()
 
 
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -175,49 +160,22 @@ function gsdo_process, fn_list,          $
 
 
     if blur_apriori gt 0.1 then begin
-        if _v then box_message, 'Convoluntion of probability map'
-        if _v then gsdo_tic
+        gsdo_header, 'BLURRING PROBABILITY MAP'
+        gsdo_tic
         psf2d = gsdo_psf2d(blur_apriori)
         imgapr_master_bl = convol((imgapr_master),    $
               reform(psf2d,[size(psf2d,/dim),1]),          $
               /EDGE_TRUNC)
-        if _v then print, ' ----- OK ' + gsdo_toc()
+        print, ' ----- OK ' + gsdo_toc()
     endif  else imgapr_master_bl = imgapr_master
 
     imgapr_master_mask = temporary(imgapr_master_bl) ge prob_threshold
-    if _v then print, '   Probability threshold:', prob_threshold
+    print, '   Probability threshold:', prob_threshold
 
 
-    if gsdo_flag('GSDO_EXTRAPLOT') then begin
-        imgdir = getenv('GSDO_DATA') + '/img/fulldisk_apriori'
-        mk_dir,imgdir
-
-    	for i = 0, (size(dataraw))[3]-1 do begin
-            set_graph, 180, 90, /mm
-            loadct,0,/silent
-    		!p.multi = [0,2,1]
-    		plot_rgb, mono2rgb(asinh(reform(dataraw[*,*,i])), min=asinh(10.0), max=asinh(2.7e3)), index=index(i)
-    		contour, /overplot, reform(imgapr_master_mask[*,*,i]), levels=[0.5]
-            if gsdo_flag('GSDO_IMAGES_COLOR') then begin
-                plot_rgb, $
-                    mono2temperature(reform(imgapr_master[*,*,i]), min=1, max=0), $
-                            index=index(i)
-            endif else begin
-                plot_rgb, mono2rgb(reform(imgapr_master[*,*,i]), min=1, max=0), $
-                            index=index(i)
-            endelse
-    		write_png, string(imgdir,'/',i+1,'.png', format='(A,A,I05,A)'), tvrd(/true)
-    	endfor
-
-
-    endif
-
-   ; stop
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-    if _v then gsdo_tic
-    if _v then print, 'Initializing stuff...'
 
     interv_start = index[0].t_obs
     interv_end = index[n_elements(index)-1].t_obs
@@ -268,7 +226,6 @@ function gsdo_process, fn_list,          $
 
 
 
-    if _v then print, ' ----- OK ' + gsdo_toc()
 
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -276,15 +233,15 @@ function gsdo_process, fn_list,          $
     k = 1
     kk = 1
 
-    if _v then gsdo_tic
-    if _v then box_message, 'LOOKING FOR ERUPTIONS'
+    gsdo_tic
+    gsdo_header, 'LOOKING FOR ERUPTIONS'
 
 
 
     while total(abs(imgapr_master_mask)) gt 0 do begin
 
-        if _v then print, 'Candidate ' + string(kk, f='(I0)') + '...'
-        if _v then print, '  (found ' + string(k-1, f='(I0)') + ')'
+        print, 'Candidate ' + string(kk, f='(I0)') + '...'
+        print, '  (found ' + string(k-1, f='(I0)') + ')'
 
         kk = kk + 1
 
@@ -311,7 +268,7 @@ function gsdo_process, fn_list,          $
         tmp = {__gsdo_eruption_ext__}
         tmp.id = k
         tmp.n_points = n_points
-        if _v then print, '  points:', tmp.n_points
+        print, '  points:', tmp.n_points
 
         tmp.mask = findgen(maxlen) lt tmp.n_points
         nn4 = min([ maxlen, n_elements(m1) ])
@@ -331,7 +288,7 @@ function gsdo_process, fn_list,          $
 
         if (tmp.area_x lt erupt_area_threshold) then continue
 
-        if _v then print, '  area', tmp.area_x
+        print, '  area', tmp.area_x
 
         ; probability mask for weighted averages
         wts_glob = float(mask[*,*,idx]) * imgapr_master[*,*,idx]
@@ -367,16 +324,14 @@ function gsdo_process, fn_list,          $
 
         tmp.x_versor = vec_x & tmp.y_versor = vec_y
 
-        if _v then begin
             print, '  start   ', anytim(tmp.t_start, /yohkoh)
             print, '  end     ', anytim(tmp.t_end, /yohkoh)
             print, '  (x,y)   ', tmp.x_start, tmp.y_start
             print, '  (kx,ky) ', vec_x, vec_y
-        endif
 
         if vec_d ge erupt_movement_threshold then begin
         	tmp.is_eruption = 1
-        	if _v then print, '  POSSIBLE ERUPTION!'
+        	print, '  POSSIBLE ERUPTION!'
         	h_arr = (x_arr-tmp.x_start) * vec_x + (y_arr-tmp.y_start) * vec_y
         	tmp.h_center = total(total(wts_loc * h_arr[*,*,idx],1),1)
         	for i = 0, n_elements(idx)-1 do begin
@@ -387,26 +342,22 @@ function gsdo_process, fn_list,          $
         	n = n_elements(idx)
         	tmp.h_traject_2 = poly_fit( findgen(n)*2, tmp.h_center[0:n-1], 2 )
         	tmp.h_traject_3 = poly_fit( findgen(n)*2, tmp.h_center[0:n-1], 3 )
-        	if _v then print, 'Trajectory:'
-        	if _v then print, tmp.h_traject_2
+        	print, 'Trajectory:'
+        	print, tmp.h_traject_2
         endif else continue
 
 
-    	if keyword_set(savegraph) then begin
-    		gsdo_erup_sheets, tmp, index, dataraw, n_diff_t, imgapr_master, float(mask)
-    	endif
+        gsdo_erup_sheets, tmp, index, dataraw, n_diff_t, imgapr_master, float(mask)
+        erupt_str = tmp
+        save, filename = gsdo_erupdir(tmp) + path_sep() + 'erupt_str.sav', erupt_str, description = gsdo_erupname(tmp)
+        undefine, erupt_str
 
-    	if keyword_set(savestruct) then begin
-    		erupt_str = tmp
-    		save, filename = gsdo_erupdir(tmp) + path_sep() + 'erupt_str.sav', erupt_str, description = gsdo_erupname(tmp)
-    		undefine, erupt_str
-    	endif
 
         gsdo_append, eruptions, tmp
         k = k + 1
 
 
-        print, '    ---'
+        print, '    --------------------------------'
 
 
 
@@ -414,19 +365,18 @@ function gsdo_process, fn_list,          $
 
     n_found = n_elements(eruptions)
 
+    gsdo_header, 'F I N I S H E D   ' + gsdo_toc()
+
     ; if any eruptions were found
     if n_found gt 0 then begin
 
-        if _v then begin
-            print, 'Eruptions found: ', n_elements(eruptions)
-            print, '  -- F I N I S H E D --   ' + gsdo_toc()
-        endif
+        print, 'Eruptions found: ', n_elements(eruptions)
 
         return, eruptions
 
     endif else begin
 
-        if _v then print, ' No eruptions found :('
+        print, ' No eruptions found :('
         return, 0
 
     endelse

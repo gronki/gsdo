@@ -19,7 +19,7 @@ pro set_graph, x, y,  win,          $
 	setgraph_checkvar, y, 90  ; mm
 
 	if zgraph then $
-	    setgraph_checkvar, dpi, getenv('GSDO_IMAGES_DPI') $
+	    setgraph_checkvar, dpi, 300 $
 	    else setgraph_checkvar, dpi, 150
 
     sc = dpi / 25.4 ; calc scale [pix/mm]

@@ -107,17 +107,16 @@
 
         eruptions = gsdo_process(fn,                        $
                 prob_threshold = 0.45,                      $
-                blur_image = 1.8,                           $
-                blur_apriori = 3.0,                         $
-                transform_param = 14.,                      $
-                area_threshold = 3.14 * 10*10 ,             $
+                blur_image = 2.0,                           $
+                blur_apriori = 2.0,                         $
+                transform_param = 9.0,                      $
+                area_threshold = 3.14 * 12*12 ,             $
                 map_max_tiles = 9,                          $
                 n_points_min = 10,							$
                 erupt_movement_threshold = 12,				$
                 erupt_intensity_threshold = 15,				$
                 n_found = n_found,                          $
-                w_param = 8,							    $
-                /SaveStruct, /Verbose, /savegraph)
+                w_param = 8)
 
 		gsdo_log, 'FINISHED ('+anytim(t0,/yoh,/trunc) + ' - ' + anytim(t1,/yoh,/trunc)+')'
 		gsdo_log, '     found eruptions ' + string(n_found)
