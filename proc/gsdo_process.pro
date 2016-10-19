@@ -38,11 +38,8 @@ function gsdo_process, fn_list,          $
     if _v then gsdo_tic
     if _v then box_message, 'Reading images...'
 
-    ;pushd, getenv('GSDO_DATA') + path_sep() + 'fits'
-    ;fn = GSDO_FNLIST(T_RAN=[interv_start,interv_end], WAVE=wave)
     m = 1
     read_sdo, fn_list, index0, data0n, m, m, 1024 - 2*m, 1024 - 2*m, /UNCOMP_DELETE, /NOSHELL
-   ; popd
 
    	if n_elements(data0n) eq 0 then begin
    		n_found = 0
@@ -156,8 +153,6 @@ function gsdo_process, fn_list,          $
     if _v then print, '    DONE ' + GSDO_TOC()
 
 
-
-; stop
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -202,7 +197,6 @@ function gsdo_process, fn_list,          $
     	for i = 0, (size(data_raw))[3]-1 do begin
             set_graph, 180, 90, /mm
             loadct,0,/silent
-    		;wait, 0.08
     		!p.multi = [0,2,1]
     		plot_rgb, mono2rgb(asinh(reform(data_raw[*,*,i])), min=asinh(10.0), max=asinh(2.7e3)), index=index(i)
     		contour, /overplot, reform(imgapr_master_mask[*,*,i]), levels=[0.5]
