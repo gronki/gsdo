@@ -9,18 +9,15 @@ Aby pobrać program na swój komputer (wymagany system **Linux/UNIX/OSX**, powł
 git clone --recursive https://github.com/gronki/gsdo.git
 ```
 
-## Instalacja SSW w katalogu domowym
-Program **GSDO** zakłada, że SSW z wymaganymi pakietami znajduję się w lokalizacji ``$HOME/.local/ssw``. Aby zainstalować SSW w tym położeniu, można uruchomić skrypt ``install`` znajdujący się w katalogu ``ssw``.
-```
-ssw/install
-```
-Powyższe polecenie zainstaluje minimalną wersję SSW. Aby zainstalować konieczne paczki SSW (``aia``, ``vobs``, ``ontology``), należy uruchomić SSWIDL i wykonać polecenie ``ssw_upgrade``.
-```
-# uruchamiamy sswidl
-ssw/start
-# instalujemy porzebne pakiety -- moze zajac dluzsza chwile!
-ssw_upgrade,/aia,/vobs,/ontology,/nomail,/spawn,/loud,/passive
-```
+## SSWIDL requirements
+
+It is advised that the SSW installation is located in the directory ``$HOME/.ssw``. If otherwise, this location can be changed in ``start_ssw`` file.
+
+If SSW is not installed, here is a quick instruction.
+Download the installation script ``ssw_install.csh`` from [SolarSoft website](http://www.lmsal.com/solarsoft/ssw_install.html). 
+Make sure that **Transfer Protocol** is set to **cURL** and **Explicit Path** is set to ``$HOME/.ssw``.
+Required SSW packages are ``aia``, ``vobs``, ``ontology``.
+Then run the installation script using ``tcsh``.
 
 ## Konfiguracja i uruchamianie
 

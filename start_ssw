@@ -1,0 +1,6 @@
+#!/bin/csh
+setenv SSW "$HOME/.ssw"
+setenv SSW_INSTR "gen vobs ontology aia"
+source "$SSW/gen/setup/setup.ssw"
+
+sswidl

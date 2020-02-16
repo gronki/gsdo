@@ -1,11 +1,11 @@
 #!/bin/bash
 
-if [[ ! -f start.pro ]]
+if [ ! -f start.pro ]
 then
     cp start.default.pro start.pro
 fi
 
-ssw/start <<EOF
+./start_ssw <<EOF
 .r setup
 print,'Setup complete'
 .r start
