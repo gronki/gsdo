@@ -13,8 +13,6 @@ function gsdo_apriori_map, index, data, var,  n_iter = n_iter, w_param = w_param
 	blur_scale = 3.0
 	b = round(blur_scale * float(n_elements(data))^(1/4.))
 
-	print, 'b = ', b
-
     ;;; and make histogram of them
     h_q = GSDO_HIST2D(/STRUCT,   $
           log_fvar[*,*,ix_q], $
