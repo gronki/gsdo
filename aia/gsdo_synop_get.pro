@@ -42,22 +42,21 @@ PRO fetch_file, uri, out_file
   uri = STRING(uri)
   out_file = STRING(out_file)
 
-  ; 1. skip if already present
   IF FILE_TEST(out_file) THEN BEGIN
     PRINT, 'File exists, skipping: ', out_file
     RETURN
   ENDIF
 
-  ; 2. build curl command
-  cmd = 'curl -L -f -s -S -o "' + out_file + '" "' + uri + '"'
-
-  ; 3. run command and capture exit code
+  file_delete, "tmp.fits", /allow_nonexistent
+  
+  cmd = 'curl -L -f -s -S -o tmp.fits "' + uri + '"'
   SPAWN, cmd, result, /STDERR, exit_status=code
 
-  ; 4. error handling
   IF code NE 0 THEN BEGIN
-    MESSAGE, 'Download failed for: ' + uri + ": " + result
+    MESSAGE, 'Download failed for: ' + uri + ": " + result[0]
   ENDIF
+  wait, 0.5
+  file_move, "tmp.fits", out_file
 
 END
 
@@ -76,7 +75,6 @@ PRO GSDO_SYNOP_GET, t0, t1, OUTDIR=outdir, FILTER=filter, verbose = verbose
   if n_elements(fn_loc) ne 0 then begin
     if _v then gsdo_header, string('Downloading ',n_elements(fn_loc),' images...', format='(A,I0,A)')
     for i = 0, n_elements(fn_loc)-1 do begin
-      wait, 0.5
       print, fn_rem[i], " --> ", fn_loc[i]
       fetch_file, fn_rem[i], fn_loc[i]
       strtmleft = gsdo_sec2str( 1.*(systime(1)-tim_start)/(i+1)*(n_elements(fn_loc)-1-i) )

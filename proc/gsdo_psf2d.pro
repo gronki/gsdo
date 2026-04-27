@@ -1,4 +1,4 @@
-;;; Computes n-dimensional gaussian kernel for convoluntion
+;;; Computes n-dimensional gaussian kernel for convolution
 function gsdo_psf2d, fwhm, error=error, discrete=discrete
 
     ;;; sigma to wchich gausian is computed

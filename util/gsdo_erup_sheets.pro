@@ -90,8 +90,8 @@ pro gsdo_erup_sheets, erup, index, data, diff, apr, mask
         im_sun = mono2rgb(asinh(reform(datac[*,*,i])), min=asinh(20.0), max=asinh(2.7e3))
         im_cm = rgb_mask * mono2rgb(reform(aprc(*,*,i)),min=0.50,max=1) / 255.0
         im_cm(0,*,*,*) = 1
-        im_cm(1,*,*,*) = 1 - im_cm(1,*,*,*) * 0.1
-        im_cm(2,*,*,*) = 1 - im_cm(2,*,*,*) * 0.3
+        im_cm(1,*,*,*) = 1 - im_cm(1,*,*,*) * 0.2
+        im_cm(2,*,*,*) = 1 - im_cm(2,*,*,*) * 0.5
     	plot_rgb, im_sun * im_cm, index=indexc(i), title='Event preview'
     	plot_rgb, mono2rgb(aprc(*,*,i),min=0,max=1) * (1-rgb_mask) + mono2temperature(aprc(*,*,i),min=0,max=1) * rgb_mask , $
             index=indexc(i), title='Apriori probability'

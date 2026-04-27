@@ -7,4 +7,7 @@ endif
 setenv SSW_INSTR "gen vobs ontology aia"
 source "$SSW/gen/setup/setup.ssw"
 
-sswidl
+sswidl <<EOF
+.r gsdo_setup
+.r gsdo_start
+EOF

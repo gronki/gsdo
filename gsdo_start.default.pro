@@ -25,10 +25,17 @@
     start_time  = '29-apr-2012 14:30'
     end_time    = '29-apr-2012 18:30'
 
-    interval    = (60*4)*60l
+    interval    = (60*3)*60l
     wave        = 171
 
-    test_mode = 0
+    ; clean fits folder after a successful epoch?
+    clean_fits_folder = 1
+
+    ; maximum number of retries for a failed job
+    max_job_retries = 3
+    
+    ; time to cool down after an error
+    cooldown_period_sec = 60 
 
     marg = 1
 
@@ -46,7 +53,7 @@
     sl = path_sep()
 
     ; directory where fits files are stored
-    fits_dir = getenv('GSDO_DATA') + sl + (test_mode ? 'fits_test' : 'fits')
+    fits_dir = getenv('GSDO_DATA') + sl + "fits"
     sav_dir = getenv('GSDO_DATA') + sl + 'sav'
 
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -65,6 +72,7 @@
     endif
 
     t1 = t0 + interval
+    fails = 0
 
 
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -75,29 +83,30 @@
         if error_handling then begin
 		    catch, err
 		    if err ne 0 then begin
+                fails = fails + 1
 		    	print,'  ERROR  ERROR  ERROR  ERROR  ERROR  ERROR !!!!!!!!'
+                print, !ERROR_STATE.MSG
+                print, !ERROR_STATE.sys_msg
 		    	gsdo_log, 'Severe error on interval: ' + anytim(t0,/yoh,/trunc) + ' - ' + anytim(t1,/yoh,/trunc)
-		    	t0 = t1 & t1 = t0 + interval
+                if fails ge max_job_retries then begin
+                    gsdo_log, "Retry number exceeded, skipping..."
+		    	    t0 = t1 & t1 = t0 + interval
+                    fails = 0
+                endif else begin
+                    gsdo_log, "Cooling down..."
+                    wait, cooldown_period_sec
+                    gsdo_log, "Retrying the job..."
+                endelse
 		    	catch,/cancel
 		    	continue
 		    endif
         endif
 
-        if test_mode eq 0 then begin
-            ; clean up
+        pushd, fits_dir
+        print, 'Downloading data...'
 
-			fn0 = FILE_SEARCH(fits_dir + path_sep() + '*.fits', /FOLD_CASE)
-
-			if fn0[0] ne '' then begin
-				file_delete, fn0, /allow_nonexistent
-			endif
-
-		    pushd, fits_dir
-		    print, 'Downloading data...'
-
-		    gsdo_synop_get, anytim(t0 - marg*2*60. - 1), anytim(t1 + marg*2*60. + 1), filter = wave, /verb
-		    popd
-        endif
+        gsdo_synop_get, anytim(t0 - marg*2*60. - 1), anytim(t1 + marg*2*60. + 1), filter = wave, /verb
+        popd
 
         fn = FILE_SEARCH(fits_dir + path_sep() + '*.fits', /FOLD_CASE)
 
@@ -121,26 +130,25 @@
 		gsdo_log, 'FINISHED ('+anytim(t0,/yoh,/trunc) + ' - ' + anytim(t1,/yoh,/trunc)+')'
 		gsdo_log, '     found eruptions ' + string(n_found)
 
-        if ~test_mode then begin
-        	time_finished = t1
-        	save, filename = anchfn, time_finished
-        endif
+        time_finished = t1
+        save, filename = anchfn, time_finished
 
         t0 = t1 & t1 = t0 + interval
+        fails = 0
 
-        if test_mode then break
+        if clean_fits_folder ne 0 then begin
+            ; clean up
 
+			fn0 = FILE_SEARCH(fits_dir + path_sep() + '*.fits', /FOLD_CASE)
 
+			if fn0[0] ne '' then begin
+				file_delete, fn0, /allow_nonexistent
+			endif
+
+        endif
 
     endwhile
 
-   ; if n_elements(eruptions_all) ne 0 then begin
-   ;     save, filename = sav_dir + path_sep() + 'all__' + gsdo_datefn(start_time)        $
-   ;             + '__' + gsdo_datefn(end_time) + '.sav',        $
-   ;             eruptions_all, start_time, end_time
-   ; endif
-
    gsdo_log, ' === JOB ENDED ==='
-
 
 end

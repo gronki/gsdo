@@ -107,7 +107,7 @@ function gsdo_process, fn_list,          $
 
     ;;; smooth
     if blur_image gt 0.1 then begin
-        gsdo_header, 'COMPUTING CONVOLUNTION'
+        gsdo_header, 'COMPUTING CONVOLUTION'
         print, 'Convolving with kernel FWHM  =', blur_image
         psf2d = gsdo_psf2d(blur_image)
         data0 = convol( temporary(data0),   $
@@ -240,8 +240,8 @@ function gsdo_process, fn_list,          $
 
     while total(abs(imgapr_master_mask)) gt 0 do begin
 
-        print, 'Candidate ' + string(kk, f='(I0)') + '...'
-        print, '  (found ' + string(k-1, f='(I0)') + ')'
+        print, 'Candidate ' + string(kk, f='(I0)') + '...' + $
+            '  (found so far: ' + string(k-1, f='(I0)') + ')'
 
         kk = kk + 1
 
@@ -261,14 +261,17 @@ function gsdo_process, fn_list,          $
         	n_points = maxlen
         endif
 
-        if n_points lt n_points_min then continue
+        print, '  * Points:', n_points
+        if n_points lt n_points_min then begin
+            print, "   --> Rejected"
+            continue
+        endif
 
         ; ------- write to structure
         ; create temporary array
         tmp = {__gsdo_eruption_ext__}
         tmp.id = k
         tmp.n_points = n_points
-        print, '  points:', tmp.n_points
 
         tmp.mask = findgen(maxlen) lt tmp.n_points
         nn4 = min([ maxlen, n_elements(m1) ])
@@ -286,9 +289,11 @@ function gsdo_process, fn_list,          $
         tmp.area_x = max(area0,imax)
         tmp.t_peak = anytim((index.t_obs)[idx[imax]])
 
-        if (tmp.area_x lt erupt_area_threshold) then continue
-
-        print, '  area', tmp.area_x
+        print, '  * Area', tmp.area_x
+        if (tmp.area_x lt erupt_area_threshold) then begin
+            print, "   --> Rejected"
+            continue
+        endif
 
         ; probability mask for weighted averages
         wts_glob = float(mask[*,*,idx]) * imgapr_master[*,*,idx]
@@ -305,7 +310,12 @@ function gsdo_process, fn_list,          $
         tmp.f_var = total(total(wts_loc * f_var[*,*,idx],1),1)
         tmp.f_var_m = total(wts_glob * f_var[*,*,idx])
 
-        if  (tmp.intens_x le erupt_intensity_threshold) then continue
+        print, '  * Intensity', tmp.intens_x
+
+        if  (tmp.intens_x le erupt_intensity_threshold) then begin
+            print, "   --> Rejected"
+            continue
+        endif
 
         ; positions
         tmp.x_center = total(total(wts_loc * x_arr[*,*,idx],1),1)
@@ -324,10 +334,12 @@ function gsdo_process, fn_list,          $
 
         tmp.x_versor = vec_x & tmp.y_versor = vec_y
 
-            print, '  start   ', anytim(tmp.t_start, /yohkoh)
-            print, '  end     ', anytim(tmp.t_end, /yohkoh)
-            print, '  (x,y)   ', tmp.x_start, tmp.y_start
-            print, '  (kx,ky) ', vec_x, vec_y
+        print, '  * start   ', anytim(tmp.t_start, /yohkoh)
+        print, '  * end     ', anytim(tmp.t_end, /yohkoh)
+        print, '  * (x,y)   ', tmp.x_start, tmp.y_start
+        print, '  * (kx,ky) ', vec_x, vec_y
+        print, ""
+        print, "  * movement = ", vec_d
 
         if vec_d ge erupt_movement_threshold then begin
         	tmp.is_eruption = 1
@@ -344,22 +356,20 @@ function gsdo_process, fn_list,          $
         	tmp.h_traject_3 = poly_fit( findgen(n)*2, tmp.h_center[0:n-1], 3 )
         	print, 'Trajectory:'
         	print, tmp.h_traject_2
-        endif else continue
-
+        endif else begin
+            print, "   --> Rejected"
+            continue
+        endelse
 
         gsdo_erup_sheets, tmp, index, dataraw, n_diff_t, imgapr_master, float(mask)
         erupt_str = tmp
         save, filename = gsdo_erupdir(tmp) + path_sep() + 'erupt_str.sav', erupt_str, description = gsdo_erupname(tmp)
         undefine, erupt_str
 
-
         gsdo_append, eruptions, tmp
         k = k + 1
 
-
         print, '    --------------------------------'
-
-
 
     endwhile
 
