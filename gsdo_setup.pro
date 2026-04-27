@@ -11,6 +11,7 @@
 
     mk_dir, getenv('GSDO_DATA')
     mk_dir, getenv('GSDO_DATA') + path_sep() + 'fits'
+    mk_dir, getenv('GSDO_DATA') + path_sep() + 'uncompressed'
     mk_dir, getenv('GSDO_DATA') + path_sep() + 'sav'
     mk_dir, getenv('GSDO_DATA') + path_sep() + 'erup'
     mk_dir, getenv('GSDO_DATA') + path_sep() + 'img'

@@ -39,7 +39,8 @@ function gsdo_process, fn_list,          $
     gsdo_header, 'Reading images...'
 
     m = 1
-    read_sdo, fn_list, index0, data0n, m, m, 1024 - 2*m, 1024 - 2*m, /UNCOMP_DELETE, /NOSHELL
+    uncompressed_dir = getenv('GSDO_DATA') + path_sep() + 'uncompressed'
+    read_sdo, fn_list, index0, data0n, m, m, 1024 - 2*m, 1024 - 2*m, parent_out=uncompressed_dir, /UNCOMP_DELETE, /NOSHELL
 
    	if n_elements(data0n) eq 0 then begin
    		n_found = 0
