@@ -1,15 +1,28 @@
 # GSDO
-Automatyczna metoda poszukiwania erupcji w danych SDO/AIA.
+Automatic method for searching for eruptions in SDO/AIA data.
 
-Kontakt: gronki@camk.edu.pl
+Contact: gronki@camk.edu.pl
 
-## Pobieranie programu
-Aby pobrać program na swój komputer (wymagany system **Linux/UNIX/OSX**, powłoka **tcsh** i instalacja **IDL** w wersji 7 lub wyższej) najłatwiej wykonać polecenie (w katalogu roboczym, w którym chcemy ściągnąć program):
+
+## Requirements
+
+- IDL version 7.0
+- SSWIDL: ``aia``, ``vobs``, ``ontology``
+- `curl` command
+- `tcsh` shell
+
+## Downloading the program
+
+To download the program to your computer, click on the "Code" button, located to the top-right of the file list, and choose "Download ZIP".
+
+If you work with git, you may use:
+
 ```
-git clone --recursive https://github.com/gronki/gsdo.git
+git clone --recursive --depth 1 https://github.com/gronki/gsdo.git
 ```
 
-## SSWIDL requirements
+
+### SSWIDL requirements
 
 It is advised that the SSW installation is located in the directory ``$HOME/.ssw``. If otherwise, this location can be changed in ``start_ssw`` file.
 
@@ -19,10 +32,23 @@ Make sure that **Transfer Protocol** is set to **cURL** and **Explicit Path** is
 Required SSW packages are ``aia``, ``vobs``, ``ontology``.
 Then run the installation script using ``tcsh``.
 
-## Konfiguracja i uruchamianie
+### Curl
 
-Aby skonfigurować parametry programu, trzeba najpierw utworzyć plik startowy. Najlepiej zrobić to na podstawie dostarczonego pliku ``start.default.pro``:
+As of 2026, JSOC moved their servers to `https` protocol, which was not handled by IDL `winget` procedure. The new version is using `curl` command which must be available in the system.
+
+## Configuration and running
+
+To configure the program parameters, you first need to create a startup file. The easiest way is to base it on the provided file `gsdo_start.default.pro`:
+
 ```
-cp start.default.pro start.pro
+cp gsdo_start.default.pro gsdo_start.pro
 ```
-Po wprowadzeniu zmian w pliku ``start.pro`` można uruchomić program w terminalu poleceniem ``./start``, lub, aby uruchomić program w tle (przydatne np. przy logowaniu przez sesję SSH), poleceniem ``./lazy-start``.
+
+After making changes in `gsdo_start.pro`, you can run it from IDL console.
+
+```
+; only run setup once after starting IDL
+.r gsdo_setup 
+; you can re-run start many times
+.r gsdo_start
+```

@@ -1,12 +1,12 @@
 #!/bin/bash
 
-if [ ! -f start.pro ]
+if [ ! -f start_gsdo.pro ]
 then
-    cp start.default.pro start.pro
+    cp gsdo_start.default.pro gsdo_start.pro
 fi
 
 ./start_ssw <<EOF
-.r setup
+.r gsdo_setup
 print,'Setup complete'
-.r start
+.r gsdo_start
 EOF

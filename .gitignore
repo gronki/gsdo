@@ -1,4 +1,5 @@
 /data
-/start.pro
+/*start*.pro
+!/gsdo_start.default.pro
 /log*.txt
 /test*

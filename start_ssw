@@ -1,5 +1,9 @@
 #!/bin/csh
-setenv SSW "$HOME/.ssw"
+
+if (! $?SSW) then
+    setenv SSW "$HOME/.ssw"
+endif
+
 setenv SSW_INSTR "gen vobs ontology aia"
 source "$SSW/gen/setup/setup.ssw"
 

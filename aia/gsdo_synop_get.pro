@@ -7,7 +7,8 @@ PRO GSDO_SYNOP_FILENAMES, t0, t1, out_local_names, out_remote_names, FILTER=filt
   CHECKVAR, filter, 304
   filt_str = string(filter,FORM='(I04)')
 
-  url0 = 'http://jsoc.stanford.edu/data/aia/synoptic/'
+  ; https://jsoc1.stanford.edu/data/aia/synoptic/2012/04/29/H1400/AIA20120429_1430_0171.fits
+  url0 = 'https://jsoc1.stanford.edu/data/aia/synoptic/'
 
   tm = gsdo_synop_neartime(t0)
 
@@ -36,6 +37,30 @@ PRO GSDO_SYNOP_FILENAMES, t0, t1, out_local_names, out_remote_names, FILTER=filt
 
 END
 
+PRO fetch_file, uri, out_file
+
+  uri = STRING(uri)
+  out_file = STRING(out_file)
+
+  ; 1. skip if already present
+  IF FILE_TEST(out_file) THEN BEGIN
+    PRINT, 'File exists, skipping: ', out_file
+    RETURN
+  ENDIF
+
+  ; 2. build curl command
+  cmd = 'curl -L -f -s -S -o "' + out_file + '" "' + uri + '"'
+
+  ; 3. run command and capture exit code
+  SPAWN, cmd, result, /STDERR, exit_status=code
+
+  ; 4. error handling
+  IF code NE 0 THEN BEGIN
+    MESSAGE, 'Download failed for: ' + uri + ": " + result
+  ENDIF
+
+END
+
 PRO GSDO_SYNOP_GET, t0, t1, OUTDIR=outdir, FILTER=filter, verbose = verbose
 
   if n_elements(outdir) ne 0 then pushd, outdir
@@ -51,11 +76,11 @@ PRO GSDO_SYNOP_GET, t0, t1, OUTDIR=outdir, FILTER=filter, verbose = verbose
   if n_elements(fn_loc) ne 0 then begin
     if _v then gsdo_header, string('Downloading ',n_elements(fn_loc),' images...', format='(A,I0,A)')
     for i = 0, n_elements(fn_loc)-1 do begin
-      wait, 0.3
-      tmp = webget(fn_rem[i], COPYFILE=fn_loc[i])
+      wait, 0.5
+      print, fn_rem[i], " --> ", fn_loc[i]
+      fetch_file, fn_rem[i], fn_loc[i]
       strtmleft = gsdo_sec2str( 1.*(systime(1)-tim_start)/(i+1)*(n_elements(fn_loc)-1-i) )
-      if _v then PRINT, 'GOT ' + fn_loc[i]
-      if _v then PRINT, '    ---> left ' + strtmleft
+      if _v then PRINT, 'GOT ' + fn_loc[i] + '   left: ' + strtmleft
     endfor
   endif
 

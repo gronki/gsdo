@@ -1,5 +1,3 @@
-;pro gsdo_setup
-
     findpro, 'gsdo_process', prolist=l
 
     if l[0] eq '' then begin

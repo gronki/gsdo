@@ -1,3 +1,0 @@
-#!/bin/bash
-
-nohup ./start >& log-$(date +%y%m%d-%H%M).txt &
