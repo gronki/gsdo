@@ -1,12 +1,12 @@
 function gsdo_apriori_map, index, data, var,  n_iter = n_iter, $
     w_param = w_param, prob_space_blur = prob_space_blur
 
-	checkvar, n_iter, 5
+	checkvar, n_iter, 3
 	checkvar, w_param, 8
 	checkvar, prob_space_blur, [3., 2.]
 
     ;;; compress using asinh
-    log_fvar = alog10(float(var))
+    log_fvar = asinh(10*float(var))
     log_data = alog10(float(data))
 
     ;;; determine quiet frames
