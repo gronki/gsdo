@@ -2,7 +2,7 @@
 function gsdo_psf, fwhm, sigma=sigm, dim=dim, DOUBLE=double
 
   ;;; sigma to wchich gausian is computed
-  checkvar, sigm, 2.5
+  checkvar, sigm, 2.12
   checkvar, dim, 1
 
   if n_elements(fwhm) eq 1 and dim ne 1 then begin
@@ -17,7 +17,7 @@ function gsdo_psf, fwhm, sigma=sigm, dim=dim, DOUBLE=double
   endif
 
   ;;; standard deviation
-  sigma = fwhm / 2.35482
+  sigma = fwhm / 2.0
   ;;; fwhm size
   npix = ceil(sigm*fwhm) > 1
   ;;; center point

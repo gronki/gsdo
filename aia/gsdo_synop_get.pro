@@ -7,7 +7,6 @@ PRO GSDO_SYNOP_FILENAMES, t0, t1, out_local_names, out_remote_names, FILTER=filt
   CHECKVAR, filter, 304
   filt_str = string(filter,FORM='(I04)')
 
-  ; https://jsoc1.stanford.edu/data/aia/synoptic/2012/04/29/H1400/AIA20120429_1430_0171.fits
   url0 = 'https://jsoc1.stanford.edu/data/aia/synoptic/'
 
   tm = gsdo_synop_neartime(t0)

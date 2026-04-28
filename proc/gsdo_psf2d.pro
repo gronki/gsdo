@@ -1,31 +1,23 @@
 ;;; Computes n-dimensional gaussian kernel for convolution
-function gsdo_psf2d, fwhm, error=error, discrete=discrete
+function gsdo_psf2d, fwhm, sigma=sigm, DOUBLE=double
 
     ;;; sigma to wchich gausian is computed
-    checkvar, dim, 1
-    checkvar, error, 1e-4
-
-
+    checkvar, sigm, 2.12
 
     ;;; standard deviation
-    sigma = fwhm / 2.35482
-    sigma_range = sqrt(-2 * alog(error))
+    sigma = fwhm / 2.0
     ;;; size in pixels
-    npix = ceil(sigma_range*fwhm) > 1
+    npix = ceil(sigm*fwhm) > 1
     ;;; center point
     cen = (npix-1)/2.
 
-    px = gsdo_coordgen(npix*[1,1],axis=1,/double)
-    py = gsdo_coordgen(npix*[1,1],axis=2,/double)
+    px = gsdo_coordgen(npix*[1,1],axis=1,double=double)
+    py = gsdo_coordgen(npix*[1,1],axis=2,double=double)
 
-    ro2 = ((px-cen) * (px-cen) + (py-cen) * (py-cen)) / ( sigma * sigma )
+    ro2 = ((px-cen)^2 + (py-cen)^2) / ( sigma^2 )
 
-    kern = exp(-0.5 * ro2)
+    kern = exp( -ro2 )
 
-    norm = 2 * !pi * sigma * sigma
-
-    if keyword_set(discrete) then  norm = total(kern)
-
-    return, kern / norm
+    return, kern /  total(kern)
 
 end

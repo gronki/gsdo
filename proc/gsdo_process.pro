@@ -10,6 +10,7 @@ function gsdo_process, fn_list,          $
         w_param = w_param, blur_image = blur_image,		$
         verbose = verbose, n_found = n_found, $
         n_points_min = n_points_min,   $
+        prob_space_blur = prob_space_blur, $
         map_max_tiles = map_max_tiles, $
         savestruct = savestruct, savegraph = savegraph
 
@@ -147,7 +148,8 @@ function gsdo_process, fn_list,          $
     imgapr_master = gsdo_activity_map(index, data, f_var,   $
             max_tiles=map_max_tiles,  $
             min_tiles = 2, $
-            w_param=w_param)
+            w_param=w_param, $
+            prob_space_blur=prob_space_blur)
 
     print, 'Generating apriori done!'
     print, ' ----- OK ' + gsdo_toc()
@@ -183,6 +185,8 @@ function gsdo_process, fn_list,          $
 
 
     ; define the structure
+    ; warning: previously, __gsdo_eruption__ had maximum
+    ; len of 80. Hence updated structure name.
     maxlen = 360
     _ = { __gsdo_eruption_ext__,            $
         id:         -1l,                $

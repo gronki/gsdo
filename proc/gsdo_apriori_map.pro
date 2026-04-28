@@ -1,7 +1,9 @@
-function gsdo_apriori_map, index, data, var,  n_iter = n_iter, w_param = w_param
+function gsdo_apriori_map, index, data, var,  n_iter = n_iter, $
+    w_param = w_param, prob_space_blur = prob_space_blur
 
 	checkvar, n_iter, 5
 	checkvar, w_param, 8
+	checkvar, prob_space_blur, [3., 2.]
 
     ;;; compress using asinh
     log_fvar = alog10(float(var))
@@ -10,21 +12,20 @@ function gsdo_apriori_map, index, data, var,  n_iter = n_iter, w_param = w_param
     ;;; determine quiet frames
     ix_q = GSDO_QUIET_INDICES(index,var,data, w1=w_param)
 
-	blur_scale = 3.0
-	b = round(blur_scale * float(n_elements(data))^(1/4.))
+	b = round(0.8*float(n_elements(data))^(1/4.))
 
     ;;; and make histogram of them
     h_q = GSDO_HIST2D(/STRUCT,   $
           log_fvar[*,*,ix_q], $
           log_data[*,*,ix_q],    $
-          MIN_X = -2.5, MAX_X = 0.5, N_X = b,   $
-          MIN_Y = 1.0, MAX_Y = 4.5, N_Y = b)
+          MIN_X = 0, MAX_X = 4.5, N_X = 2*b,   $
+          MIN_Y = 0, MAX_Y = 4.5, N_Y = b)
 
     h_all = gsdo_hist2d(/struct, like = h_q,        $
             log_fvar, log_data)
 
     ;;; kernel used to smooth probabilities
-    krn_hist =  gsdo_psf2d(blur_scale * 1.66667)
+    krn_hist =  gsdo_psf2d(prob_space_blur)
     ;;; smooth probability distribution for less noise
     ;;; during division
 	h_q_conv = h_q

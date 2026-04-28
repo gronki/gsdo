@@ -1,10 +1,10 @@
 function gsdo_activity_map, index, data, f_var,         $
         max_tiles = max_tiles, $
         w_param = w_param, $
-        min_tiles = min_tiles
+        min_tiles = min_tiles, $
+        prob_space_blur=prob_space_blur
 
   on_error, 2
-
 
   ;;; define the grid of rectangular elements
   checkvar, max_tiles, 8
@@ -60,7 +60,7 @@ function gsdo_activity_map, index, data, f_var,         $
 
         ;;; compute a-priori probability of activity
         imgapr_crp = gsdo_apriori_map( index_crp, data_crp, f_var_crp,  $
-                w_param = w_param )
+                w_param = w_param, prob_space_blur = prob_space_blur )
 
         ;;; add the square to entire image
         imgapr[xr[0]:xr[1],yr[0]:yr[1],*] = imgapr_crp

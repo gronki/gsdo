@@ -63,12 +63,12 @@
 
     anchfn = sav_dir + sl + 'anchor.sav'
     if (FILE_SEARCH(anchfn))[0] ne '' then begin
-    	restore, filename = anchfn
-    	t = anytim(time_finished)
-    	if (t gt anytim(start_time)) and (t lt anytim(end_time)) then begin
-    		gsdo_log, 'Restoring saved point ' + anytim(t,/yoh,/trunc)
-    		t0 = t
-    	endif
+        restore, filename = anchfn
+        t = anytim(time_finished)
+        if (t gt anytim(start_time)) and (t lt anytim(end_time)) then begin
+            gsdo_log, 'Restoring saved point ' + anytim(t,/yoh,/trunc)
+            t0 = t
+        endif
     endif
 
     t1 = t0 + interval
@@ -81,25 +81,25 @@
     while t1 le anytim(end_time) do begin
 
         if error_handling then begin
-		    catch, err
-		    if err ne 0 then begin
+            catch, err
+            if err ne 0 then begin
                 fails = fails + 1
-		    	print,'  ERROR  ERROR  ERROR  ERROR  ERROR  ERROR !!!!!!!!'
+                print,'  ERROR  ERROR  ERROR  ERROR  ERROR  ERROR !!!!!!!!'
                 print, !ERROR_STATE.MSG
                 print, !ERROR_STATE.sys_msg
-		    	gsdo_log, 'Severe error on interval: ' + anytim(t0,/yoh,/trunc) + ' - ' + anytim(t1,/yoh,/trunc)
+                gsdo_log, 'Severe error on interval: ' + anytim(t0,/yoh,/trunc) + ' - ' + anytim(t1,/yoh,/trunc)
                 if fails ge max_job_retries then begin
                     gsdo_log, "Retry number exceeded, skipping..."
-		    	    t0 = t1 & t1 = t0 + interval
+                    t0 = t1 & t1 = t0 + interval
                     fails = 0
                 endif else begin
                     gsdo_log, "Cooling down..."
                     wait, cooldown_period_sec
                     gsdo_log, "Retrying the job..."
                 endelse
-		    	catch,/cancel
-		    	continue
-		    endif
+                catch,/cancel
+                continue
+            endif
         endif
 
         pushd, fits_dir
@@ -114,21 +114,22 @@
             message, 'error: no files'
         endif
 
-        eruptions = gsdo_process(fn,                        $
-                prob_threshold = 0.45,                      $
-                blur_image = 2.0,                           $
-                blur_apriori = 2.0,                         $
-                transform_param = 9.0,                      $
-                area_threshold = 3.14 * 12*12 ,             $
-                map_max_tiles = 9,                          $
-                n_points_min = 10,							$
-                erupt_movement_threshold = 12,				$
-                erupt_intensity_threshold = 15,				$
-                n_found = n_found,                          $
+        eruptions = gsdo_process(fn,                    $
+                prob_threshold = 0.35,                  $
+                blur_image = 2.8,                       $
+                blur_apriori = 7.0,                     $
+                transform_param = 8.0,                  $
+                area_threshold = 600,                   $
+                map_max_tiles = 14,                     $
+                n_points_min = 10,			            $
+                erupt_movement_threshold = 25,          $
+                erupt_intensity_threshold = 30,         $
+                prob_space_blur = [3., 2.],             $
+                n_found = n_found,                      $
                 w_param = 8)
 
-		gsdo_log, 'FINISHED ('+anytim(t0,/yoh,/trunc) + ' - ' + anytim(t1,/yoh,/trunc)+')'
-		gsdo_log, '     found eruptions ' + string(n_found)
+        gsdo_log, 'FINISHED ('+anytim(t0,/yoh,/trunc) + ' - ' + anytim(t1,/yoh,/trunc)+')'
+        gsdo_log, '     found eruptions ' + string(n_found)
 
         time_finished = t1
         save, filename = anchfn, time_finished
@@ -139,11 +140,11 @@
         if clean_fits_folder ne 0 then begin
             ; clean up
 
-			fn0 = FILE_SEARCH(fits_dir + path_sep() + '*.fits', /FOLD_CASE)
+            fn0 = FILE_SEARCH(fits_dir + path_sep() + '*.fits', /FOLD_CASE)
 
-			if fn0[0] ne '' then begin
-				file_delete, fn0, /allow_nonexistent
-			endif
+            if fn0[0] ne '' then begin
+                file_delete, fn0, /allow_nonexistent
+            endif
 
         endif
 
