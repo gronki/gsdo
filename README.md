@@ -36,6 +36,11 @@ Then run the installation script using ``tcsh``.
 
 As of 2026, JSOC moved their servers to `https` protocol, which was not handled by IDL `winget` procedure. The new version is using `curl` command which must be available in the system.
 
+### Windows 10 and 11
+
+This program uses ``imcopy`` tool (via Ontology package), which may fail to load under more recent Windows systems. There could be an issue with files being downloaded to `fits` folder but silently failing to load, resulting in an error about "zero dimension for convolution". The solution is to install Visual C++ 2010 Redistributable [from Microsoft](https://www.microsoft.com/en-us/download/details.aspx?id=26999).
+
+
 ## Configuration and running
 
 To configure the program parameters, you first need to create a startup file. The easiest way is to base it on the provided file `gsdo_start.default.pro`:
