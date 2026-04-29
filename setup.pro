@@ -1,7 +1,5 @@
 ;pro gsdo_setup
     
-    cd,'C:\Users\Tomek\ERUPCJE'
-    
     findpro, 'gsdo_process', prolist=l
     
     if l[0] eq '' then begin

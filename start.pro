@@ -23,12 +23,8 @@
     
     cpu, TPOOL_MIN_ELTS = 10000
 
-    ;start_time  = '26-may-2019 03:00' end_time = '30-jun-2019 23:59'
-    ;start_time  = '17-jul-2019 15:00' end_time = '31-oct-2019 23:59'
-;    start_time = '17-jan-2020 12:00' 
-;    end_time    = '01-dec-2020 00:00' 
-    start_time = '27-may-2014 12:00'
-    end_time = '27-may-2014 15:00'
+    start_time = '01-apr-2024 01:30'
+    end_time = '01-may-2024 01:30'
     
     
     interval    = (60*3)*60l
@@ -37,7 +33,7 @@
     
     marg = 3
     
-    error_handling = 0
+    error_handling = 1
     
     set_plot,'Z'
     
