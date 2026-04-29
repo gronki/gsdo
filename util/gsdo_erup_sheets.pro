@@ -78,24 +78,22 @@ pro gsdo_erup_sheets, erup, index, data, diff, apr, mask
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-    set_graph, 180, 60, /mm
 
     idx = where(erup.mask_seq,nn)
 
     for j = 0, nn-1 do begin
     	i = idx[j]
-        set_graph, 180, 70, /mm
-    	!p.multi = [0,3,1]
+        set_graph, 235, 75, /mm
+    	!p.multi = [0,4,1]
         rgb_mask = mono2rgb(reform(maskc[*,*,i]), min=0, max=1) / 255.0
         im_sun = mono2rgb(asinh(reform(datac[*,*,i])), min=asinh(20.0), max=asinh(2.7e3))
-        im_cm = rgb_mask * mono2rgb(reform(aprc(*,*,i)),min=0.50,max=1) / 255.0
-        im_cm(0,*,*,*) = 1
-        im_cm(1,*,*,*) = 1 - im_cm(1,*,*,*) * 0.2
-        im_cm(2,*,*,*) = 1 - im_cm(2,*,*,*) * 0.5
-    	plot_rgb, im_sun * im_cm, index=indexc(i), title='Event preview'
-    	plot_rgb, mono2rgb(aprc(*,*,i),min=0,max=1) * (1-rgb_mask) + mono2temperature(aprc(*,*,i),min=0,max=1) * rgb_mask , $
+        masked_apr = rgb_mask * mono2rainbow(reform(aprc(*,*,i)),min=0.4,max=1)
+    	plot_rgb, im_sun, index=indexc(i), title='Event preview'
+    	plot_rgb, im_sun * ( 1.0 - rgb_mask ) + masked_apr , $
+                index=indexc(i), title='Event preview + mask'
+    	plot_rgb, mono2rgb(aprc(*,*,i),min=0,max=1) * (1 - rgb_mask) + masked_apr , $
             index=indexc(i), title='Apriori probability'
-    	plot_rgb, mono2rgb(reform(diffc[*,*,i]), min = -0.15, max = 0.15), $
+    	plot_rgb, mono2rgb(reform(diffc[*,*,i]), min = -0.2, max = 0.2), $
             index=indexc(i), title='Modified running difference'
 
     	write_png, er_dir + path_sep() + 'f' + string(j+1,f='(I03)') + '.png', tvrd(/true)
