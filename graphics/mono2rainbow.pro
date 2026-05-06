@@ -15,7 +15,7 @@ function mono2rainbow, x, min=min, max=max
     out = fltarr( [ 3, size(y,/dim) ] )
     z = y(*,*,*)
 
-    rp = [-2.5, 2.0, 19, 20]
+    rp = [-2.8, 3.0, 19, 20]
     gp = [ 0.2, 2.5, 18, 20]
     bp = [ 2.0, 1.3, 99, 20]
 

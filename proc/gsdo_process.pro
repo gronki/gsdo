@@ -19,8 +19,8 @@ function gsdo_process, fn_list,          $
 
 
     checkvar, prob_threshold, 0.5
-    checkvar, blur_apriori, 0.0
-    checkvar, blur_image, 0.0
+    checkvar, blur_apriori, 4.0
+    checkvar, blur_image, 2.8
 	checkvar, n_points_min, 8
     checkvar, erupt_area_threshold, 200
     checkvar, erupt_movement_threshold, 25
@@ -124,7 +124,7 @@ function gsdo_process, fn_list,          $
     diff_t = (gsdo_deriv( data0, axis=3, order=1 ))[*,*,idx]
 
     ;;; normalized differentials -- computed from transformed fucntion
-    n_data = gsdo_fix(alog(temporary(data0)+a_param),0)
+    n_data = gsdo_fix(alog(temporary(data0)+a_param) - alog(float(a_param)),0)
     n_diff_t = (gsdo_deriv( n_data, axis=3, order=1 ))[*,*,idx]
     n_diff_tt = (gsdo_deriv( temporary(n_data), axis=3, order=2 ))[*,*,idx]
 
@@ -187,7 +187,7 @@ function gsdo_process, fn_list,          $
     ; define the structure
     ; warning: previously, __gsdo_eruption__ had maximum
     ; len of 80. Hence updated structure name.
-    maxlen = 360
+    maxlen = 80
     _ = { __gsdo_eruption_ext__,            $
         id:         -1l,                $
         t_start:    0.d,                $
@@ -369,6 +369,8 @@ function gsdo_process, fn_list,          $
         gsdo_erup_sheets, tmp, index, dataraw, n_diff_t, imgapr_master, float(mask)
         erupt_str = tmp
         save, filename = gsdo_erupdir(tmp) + path_sep() + 'erupt_str.sav', erupt_str, description = gsdo_erupname(tmp)
+        erupt_mask = mask[*,*,idx]
+        save, filename = gsdo_erupdir(tmp) + path_sep() + 'erupt_mask.sav', erupt_mask, /compress
         undefine, erupt_str
 
         gsdo_append, eruptions, tmp
