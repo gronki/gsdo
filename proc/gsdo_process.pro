@@ -12,6 +12,7 @@ function gsdo_process, fn_list,          $
         n_points_min = n_points_min,   $
         prob_space_blur = prob_space_blur, $
         map_max_tiles = map_max_tiles, $
+        margin = margin, reject_head_tail = reject_head_tail, $
         savestruct = savestruct, savegraph = savegraph
 
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -27,6 +28,8 @@ function gsdo_process, fn_list,          $
     checkvar, erupt_intensity_threshold, 30
     checkvar, map_max_tiles, 12
     checkvar, w_param, 8
+    checkvar, margin, 4
+    checkvar, reject_head_tail, 3
 
     _v = keyword_set(verbose)
 
@@ -39,9 +42,8 @@ function gsdo_process, fn_list,          $
     gsdo_tic
     gsdo_header, 'Reading images...'
 
-    m = 1
     uncompressed_dir = getenv('GSDO_DATA') + path_sep() + 'uncompressed'
-    read_sdo, fn_list, index0, data0n, m, m, 1024 - 2*m, 1024 - 2*m, parent_out=uncompressed_dir, /UNCOMP_DELETE, /NOSHELL
+    read_sdo, fn_list, index0, data0n, margin, margin, 1024 - 2*margin, 1024 - 2*margin, parent_out=uncompressed_dir, /UNCOMP_DELETE, /NOSHELL
 
    	if n_elements(data0n) eq 0 then begin
    		n_found = 0
@@ -94,13 +96,13 @@ function gsdo_process, fn_list,          $
         else: a_def = 5.
     endcase
 
-    checkvar, a_param, a_def, 1.
+    checkvar, a_param, a_def
 
     print, 'Transformation parameter: ', a_param
 
 
     ;;; reject first and last frames of index
-    n_clip = 1
+    n_clip = reject_head_tail
     idx = findgen((size(data0))[3]-2*n_clip) + n_clip
     index = index0[idx]
 
@@ -130,9 +132,7 @@ function gsdo_process, fn_list,          $
 
 
     ;;; compute variability index
-    f_var = sqrt( (n_diff_t)^2 + 0.25*(n_diff_tt)^2 )
-
-	n_diff_tt = 0
+    f_var = sqrt( (n_diff_t)^2 + 0.25*temporary(n_diff_tt)^2 )
 
     print, '   -->  differentials OK'
     print, '    DONE ' + GSDO_TOC()
@@ -301,7 +301,7 @@ function gsdo_process, fn_list,          $
         endif
 
         ; probability mask for weighted averages
-        wts_glob = float(mask[*,*,idx]) * imgapr_master[*,*,idx]
+        wts_glob = float(mask[*,*,idx]) * imgapr_master_bl[*,*,idx]
         wts_glob = wts_glob / total(wts_glob)
         wts_t = total(total(wts_glob,1),1)
         wts_loc = wts_glob / gsdo_v2m(wts_t, wts_glob, axis=3)
