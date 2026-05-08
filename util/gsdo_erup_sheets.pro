@@ -54,7 +54,9 @@ pro gsdo_erup_sheets, erup, index, data, diff, apr, mask
 	outplot, erup.times[0] + xxx*60., erup.h_traject_3[0] + xxx * erup.h_traject_3[1] 	$
 			+ xxx^2 * erup.h_traject_3[2] + xxx^3 * erup.h_traject_3[3], 0, color = rgb(100,100,100)
 
-    write_png, er_dir + path_sep() + 'summ.png', tvrd(/true)
+    er_summ_png_fn = er_dir + path_sep() + 'summ.png'
+    print, " -> ", er_summ_png_fn
+    write_png, er_summ_png_fn, tvrd(/true)
 
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -78,7 +80,6 @@ pro gsdo_erup_sheets, erup, index, data, diff, apr, mask
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-
     idx = where(erup.mask_seq,nn)
 
     for j = 0, nn-1 do begin
@@ -95,15 +96,10 @@ pro gsdo_erup_sheets, erup, index, data, diff, apr, mask
             index=indexc(i), title='Apriori probability'
     	plot_rgb, mono2rgb(reform(diffc[*,*,i]), min = -0.2, max = 0.2), $
             index=indexc(i), title='Modified running difference'
-
-    	write_png, er_dir + path_sep() + 'f' + string(j+1,f='(I03)') + '.png', tvrd(/true)
+        sheet_fn = er_dir + path_sep() + 'f' + string(j+1,f='(I03)') + '.png'
+        print, " -> ", sheet_fn
+    	write_png, sheet_fn, tvrd(/true)
     endfor
-
-
-
-
-
-    ;write_png, er_dir + path_sep() + '.png', tvrd(/true)
 
     set_graph, /clean
 

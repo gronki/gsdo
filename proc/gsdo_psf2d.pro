@@ -5,15 +5,16 @@ function gsdo_psf2d, fwhm, sigma=sigm, DOUBLE=double
     checkvar, sigm, 2.12
 
     if n_elements(fwhm) eq 1 then begin
-        fwhm = [fwhm, fwhm]
-    endif else if n_elements(fwhm) ne 2 then begin
-        message, "psf2d expects scalar of 2-elemnt fWHM"
-    endif
+        fwhm_ = [fwhm, fwhm]
+    endif else begin
+        if n_elements(fwhm) ne 2 then message, "psf2d expects scalar of 2-elemnt fWHM"
+        fwhm_ = fwhm
+    endelse
 
     ;;; standard deviation
-    sigma = fwhm / 2.0
+    sigma = fwhm_ / 2.0
     ;;; size in pixels
-    npix = ceil(sigm*fwhm) > 1
+    npix = ceil(sigm*fwhm_) > 1
     ;;; center point
     cen = (npix-1)/2.
 

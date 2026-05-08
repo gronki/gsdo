@@ -30,8 +30,8 @@ function gsdo_apriori_map, index, data, var,  n_iter = n_iter, $
     ;;; during division
 	h_q_conv = h_q
 	h_all_conv = h_all
-    h_q_conv.hist = convol(double(h_q.hist)/n_elements(ix_q), double(krn_hist), /EDGE_TRUNC)
-    h_all_conv.hist = convol(double(h_all.hist)/n_elements(data[0,0,*]), double(krn_hist), /EDGE_TRUNC)
+    h_q_conv.hist = convol(float(h_q.hist)/n_elements(ix_q), krn_hist, /EDGE_TRUNC)
+    h_all_conv.hist = convol(float(h_all.hist)/n_elements(data[0,0,*]), krn_hist, /EDGE_TRUNC)
 
     ;;; compute apriori probability that pixel is not quiet
     h_apr = h_q
@@ -45,7 +45,7 @@ function gsdo_apriori_map, index, data, var,  n_iter = n_iter, $
 		h_apr.hist = float(h_apr.hist)
 
 		;;; remap it to an image
-		imgapr = GSDO_HIST2D_REMAP(log_fvar, log_data, h_apr)
+		imgapr = GSDO_HIST2D_REMAP(log_fvar, log_data, h_apr, missing=0.0)
 
 		;;; recompute eruption fill factor
 		s = ( total(float(imgapr gt 0.5)) / n_elements(imgapr) ) < 0.5

@@ -59,13 +59,14 @@ PRO fetch_file, uri, out_file
 
 END
 
-PRO GSDO_SYNOP_GET, t0, t1, OUTDIR=outdir, FILTER=filter, verbose = verbose
+PRO GSDO_SYNOP_GET, t0, t1, OUTDIR=outdir, FILTER=filter, LOCAL_NAMES=local_names, verbose = verbose
 
   if n_elements(outdir) ne 0 then pushd, outdir
 
   _v = keyword_set(verbose)
 
   GSDO_SYNOP_FILENAMES, t0, t1, fn_loc, fn_rem, FILTER=filter
+  if arg_present(local_names) then local_names = fn_loc
 
   tim_start = systime(1)
 

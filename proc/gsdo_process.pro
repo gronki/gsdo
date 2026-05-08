@@ -1,6 +1,6 @@
 
 
-function gsdo_process, fn_list,          $
+function gsdo_process, fn_list,  $
         transform_param = a_param,        $
         prob_threshold = prob_threshold,    $
         erupt_movement_threshold = erupt_movement_threshold,		$
@@ -22,14 +22,14 @@ function gsdo_process, fn_list,          $
     checkvar, prob_threshold, 0.5
     checkvar, blur_apriori, 4.0
     checkvar, blur_image, 2.8
-	checkvar, n_points_min, 8
+    checkvar, n_points_min, 8
     checkvar, erupt_area_threshold, 200
     checkvar, erupt_movement_threshold, 25
     checkvar, erupt_intensity_threshold, 30
     checkvar, map_max_tiles, 12
     checkvar, w_param, 8
     checkvar, margin, 4
-    checkvar, reject_head_tail, 3
+    checkvar, reject_head_tail, 1
 
     _v = keyword_set(verbose)
 
@@ -130,7 +130,6 @@ function gsdo_process, fn_list,          $
     n_diff_t = (gsdo_deriv( n_data, axis=3, order=1 ))[*,*,idx]
     n_diff_tt = (gsdo_deriv( temporary(n_data), axis=3, order=2 ))[*,*,idx]
 
-
     ;;; compute variability index
     f_var = sqrt( (n_diff_t)^2 + 0.25*temporary(n_diff_tt)^2 )
 
@@ -172,7 +171,7 @@ function gsdo_process, fn_list,          $
         print, ' ----- OK ' + gsdo_toc()
     endif  else imgapr_master_bl = imgapr_master
 
-    imgapr_master_mask = temporary(imgapr_master_bl) ge prob_threshold
+    imgapr_master_mask = imgapr_master_bl ge prob_threshold
     print, '   Probability threshold:', prob_threshold
 
 

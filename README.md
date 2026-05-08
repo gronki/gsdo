@@ -6,7 +6,7 @@ Contact: gronki@camk.edu.pl
 
 ## Requirements
 
-- IDL version 7.0
+- IDL version 7.0 / GDL
 - SSWIDL: ``aia``, ``vobs``, ``ontology``
 - `curl` command
 - `tcsh` shell
@@ -39,6 +39,19 @@ As of 2026, JSOC moved their servers to `https` protocol, which was not handled 
 ### Windows 10 and 11
 
 This program uses ``imcopy`` tool (via Ontology package), which may fail to load under more recent Windows systems. There could be an issue with files being downloaded to `fits` folder but silently failing to load, resulting in an error about "zero dimension for convolution". The solution is to install Visual C++ 2010 Redistributable [from Microsoft](https://www.microsoft.com/en-us/download/details.aspx?id=26999).
+
+### Docker and GNU Data Language (GDL)
+
+Since requiring the proprietary software like IDL is detrimental to the openness and availability of science, this program will run on free [GDL](https://gnudatalanguage.github.io/). It has been tested to provide pixel-to-pixel identical results in comparison with the proprietary IDL interpeter, although the setup requires a few adjustments:
+
+- SSW AIA software needs a patch
+- set environment variable `GSDO_DEVICE="X"`
+
+The easiest way to run this code without an IDL license is to use [Docker Engine](https://www.docker.com/). Once [configured](https://docs.docker.com/engine/install/ubuntu/), the helper script should build the container and spin up the program:
+
+```sh
+./run_gdl_docker.sh
+```
 
 
 ## Configuration and running
