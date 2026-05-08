@@ -13,7 +13,7 @@ pro set_graph, x, y,  win,          $
 
 	common ___setzgraph___, old_dev
 
-	zgraph = (n_elements(win) eq 0)
+	zgraph = (getenv("GSDO_DEVICE") ne "X")
 
 	setgraph_checkvar, x, 110 ; mm
 	setgraph_checkvar, y, 90  ; mm
@@ -29,7 +29,6 @@ pro set_graph, x, y,  win,          $
 
 
 	if keyword_set(clean) then begin
-		set_plot,'X'
 		return
 	endif
 
