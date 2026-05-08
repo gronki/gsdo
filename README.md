@@ -51,6 +51,7 @@ The easiest way to run this code without an IDL license is to use [Docker Engine
 
 ```sh
 ./run_gdl_docker.sh
+# add --detach to run in the background
 ```
 
 
