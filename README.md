@@ -42,7 +42,7 @@ This program uses ``imcopy`` tool (via Ontology package), which may fail to load
 
 ### Docker and GNU Data Language (GDL)
 
-Since requiring the proprietary software like IDL is detrimental to the openness and availability of science, this program will run on free [GDL](https://gnudatalanguage.github.io/). It has been tested to provide pixel-to-pixel identical results in comparison with the proprietary IDL interpeter, although the setup requires a few adjustments:
+To keep the science open, an effort has been made that this program runs on free [GDL](https://gnudatalanguage.github.io/). It has been tested to provide pixel-to-pixel identical results in comparison with the proprietary IDL interpeter, although the setup requires a few adjustments:
 
 - SSW AIA software needs a patch
 - set environment variable `GSDO_DEVICE="X"`
@@ -51,6 +51,7 @@ The easiest way to run this code without an IDL license is to use [Docker Engine
 
 ```sh
 ./run_gdl_docker.sh
+# add --detach to run in the background
 ```
 
 

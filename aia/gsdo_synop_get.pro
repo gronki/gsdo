@@ -49,11 +49,12 @@ PRO fetch_file, uri, out_file
   file_delete, "tmp.fits", /allow_nonexistent
   
   cmd = 'curl -L -f -s -S -o tmp.fits "' + uri + '"'
-  SPAWN, cmd, result, /STDERR, exit_status=code
+  SPAWN, cmd, result, err, exit_status=code
 
   IF code NE 0 THEN BEGIN
     MESSAGE, 'Download failed for: ' + uri + ": " + result[0]
   ENDIF
+
   wait, 0.5
   file_move, "tmp.fits", out_file
 
