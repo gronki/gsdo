@@ -24,11 +24,11 @@
     ;   cp gsdo_start.default.pro gsdo_start.pro
 
 
-    start_time  = '23-apr-2024 01:30'
-    end_time    = '23-apr-2024 07:30'
+    start_time  = '21-may-2019 00:00'
+    end_time    = '21-may-2019 06:00'
 
     ; processing interval length in seconds (default: 3h)
-    interval    = (60*3)*60l
+    interval    = 3L * 3600L
 
     ; AIA wavelength
     wave        = 171
@@ -64,6 +64,10 @@
                                      ; contributes to finding quiet frames 
     reject_head_tail = 1             ; how many frames to add before and after each 
                                      ; processing interval (minimum: 1)
+    max_eruption_points = interval / 120L
+                                     ; maximum points in time that the program can handle
+                                     ; too short will cause clipping of the eruptions
+                                     ; occuring towards the end of the interval
 
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -146,6 +150,7 @@
                 prob_space_blur = prob_space_blur ,              $
                 n_found = n_found,                      $
                 reject_head_tail = reject_head_tail,     $
+                maxlen = max_eruption_points, $
                 w_param = w_param)
 
         gsdo_log, 'FINISHED ('+anytim(t0,/yoh,/trunc) + ' - ' + anytim(t1,/yoh,/trunc)+')'

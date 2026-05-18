@@ -13,6 +13,7 @@ function gsdo_process, fn_list,  $
         prob_space_blur = prob_space_blur, $
         map_max_tiles = map_max_tiles, $
         margin = margin, reject_head_tail = reject_head_tail, $
+        maxlen = maxlen, $
         savestruct = savestruct, savegraph = savegraph
 
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -30,6 +31,7 @@ function gsdo_process, fn_list,  $
     checkvar, w_param, 8
     checkvar, margin, 4
     checkvar, reject_head_tail, 1
+    checkvar, maxlen, 80
 
     _v = keyword_set(verbose)
 
@@ -184,10 +186,7 @@ function gsdo_process, fn_list,  $
 
 
     ; define the structure
-    ; warning: previously, __gsdo_eruption__ had maximum
-    ; len of 80. Hence updated structure name.
-    maxlen = 80
-    _ = { __gsdo_eruption_ext__,            $
+    _ = { __gsdo_eruption__,            $
         id:         -1l,                $
         t_start:    0.d,                $
         t_end:      0.d,                $
@@ -256,11 +255,11 @@ function gsdo_process, fn_list,  $
         ; subtract the eruption from remaining mask
         imgapr_master_mask = imgapr_master_mask and not mask
 
-
-
         m1 = total(total(float(mask),1),1) gt 0
         idx = where(m1, n_points)
+        print, '  * Indices: ', idx
         if n_points gt maxlen then begin
+                print, "  !! Warning: maximum length ", maxlen, " exceeded."
         	idx = idx[0:maxlen-1]
         	n_points = maxlen
         endif
